@@ -1,0 +1,6 @@
+# ビルドで再生成される中間・成果物（ソースから必ず復元できる）
+src/*/data.js
+src/*/body.html
+src/*/app.html
+src/jp/jlpt-tangocho.html
+src/en/eitango.html
