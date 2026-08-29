@@ -1193,7 +1193,7 @@ const MASTER = 4;
 
 const defState = {
   srs:{}, log:{}, best:0, mark:{},
-  cfg:{ rate:.9, goal:30, dir:"jp", decks:[], view:"cards", list:false, shadow:2, furi:true, lvs:[3,2,1], bar:false, autoNext:false, exam:"2027-03-01" }
+  cfg:{ rate:.9, goal:30, dir:"jp", decks:[], view:"cards", list:false, shadow:2, furi:true, lvs:[3,2], bar:false, autoNext:false, exam:"2027-02-10" }
 };
 let st = defState;
 try{ const r = localStorage.getItem(LS); if(r) st = deepMerge(defState, JSON.parse(r)); }catch(e){}
