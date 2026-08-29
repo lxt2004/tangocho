@@ -1,0 +1,1658 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="英単語ノート"><meta name="theme-color" content="#0F7A6B"><link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./apple-touch-icon.png"><link rel="icon" href="./icon-192.png"><title>英単語ノート</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Plus+Jakarta+Sans:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Noto+Sans+SC:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#FBF9F5; --surface:#FFFFFF; --surface2:#F1EDE6; --raised:#FFFFFF;
+  --ink:#241F1A; --ink2:#5C5349; --ink3:#8C8377;
+  --rule:#E2DACE; --rule2:#EDE7DD;
+  --accent:#0F7A6B; --accent2:#146F62; --onAccent:#FBFDFC;
+  --ok:#2F7D4F; --warn:#B5761F; --bad:#C0483C;
+  --shadow:0 1px 2px rgba(36,31,26,.06), 0 10px 26px -14px rgba(36,31,26,.22);
+  --en:"Newsreader","Iowan Old Style","Times New Roman",serif;
+  --ui:"Plus Jakarta Sans","Zen Kaku Gothic New","Noto Sans SC","Hiragino Sans",system-ui,sans-serif;
+  --jp:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#171412; --surface:#211D1A; --surface2:#2B2621; --raised:#242019;
+    --ink:#F2EDE6; --ink2:#B8AEA2; --ink3:#8A8177;
+    --rule:#382F28; --rule2:#2A241F;
+    --accent:#5FCBB8; --accent2:#7FD8C7; --onAccent:#12201D;
+    --ok:#7FC49A; --warn:#DDA85E; --bad:#E08B80;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 32px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#171412; --surface:#211D1A; --surface2:#2B2621; --raised:#242019;
+  --ink:#F2EDE6; --ink2:#B8AEA2; --ink3:#8A8177;
+  --rule:#382F28; --rule2:#2A241F;
+  --accent:#5FCBB8; --accent2:#7FD8C7; --onAccent:#12201D;
+  --ok:#7FC49A; --warn:#DDA85E; --bad:#E08B80;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 32px -16px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);
+  font-size:16px;line-height:1.7;-webkit-text-size-adjust:100%}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.zh{font-family:"Noto Sans SC",var(--ui)}
+.en{font-family:var(--en)}
+
+#app{display:grid;grid-template-columns:76px 1fr;min-height:100vh}
+#rail{border-right:1px solid var(--rule);background:var(--surface);
+  display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px 0;position:sticky;top:0;height:100vh}
+.brand{font-family:var(--jp);font-weight:700;font-size:14px;writing-mode:vertical-rl;
+  letter-spacing:.3em;color:var(--accent);margin-bottom:14px;user-select:none}
+.tab{writing-mode:vertical-rl;font-family:var(--jp);font-size:15px;letter-spacing:.2em;
+  padding:15px 9px;border-radius:999px;color:var(--ink3);transition:color .15s,background .15s}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--accent);background:var(--surface2);font-weight:700}
+.tab small{writing-mode:horizontal-tb;display:block;font-family:var(--mono);font-size:8.5px;
+  letter-spacing:0;opacity:.6;margin-top:8px;text-align:center}
+#rail .spacer{flex:1}
+.icon-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--ink3);font-size:17px}
+.icon-btn:hover{color:var(--ink);background:var(--surface2)}
+
+main{min-width:0;padding:0 0 64px}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);
+  background:color-mix(in srgb,var(--bg) 90%,transparent);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--rule2);padding:14px 26px 12px}
+.bar-row{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;max-width:920px;margin:0 auto}
+h1{font-family:var(--jp);font-weight:700;font-size:20px;margin:0;letter-spacing:.05em}
+.sub{font-size:12.5px;color:var(--ink3);font-family:var(--mono)}
+.wrap{max-width:920px;margin:0 auto;padding:26px}
+.countdown{font-family:var(--mono);font-size:11.5px;color:var(--warn);
+  border:1px solid var(--warn);border-radius:999px;padding:2px 10px;white-space:nowrap}
+
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.chips.scene{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--rule2)}
+.chip{font-size:12.5px;padding:5px 12px;border:1px solid var(--rule);border-radius:999px;
+  color:var(--ink2);background:var(--surface);transition:.15s}
+.chip:hover{border-color:var(--accent);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--onAccent);font-weight:500}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{padding:5px 12px;font-size:12.5px;color:var(--ink2);border-right:1px solid var(--rule)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--surface2);color:var(--accent);font-weight:700}
+.field{width:100%;padding:11px 14px;border:1px solid var(--rule);border-radius:10px;
+  background:var(--surface);color:var(--ink);font-family:var(--ui);font-size:15px}
+.field::placeholder{color:var(--ink3)}
+.note{font-size:12.5px;color:var(--ink3);line-height:1.6}
+.filt{margin-left:10px;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;
+  color:var(--ink2);background:var(--surface);border:1px solid var(--rule);
+  border-radius:999px;padding:4px 12px;transition:.15s;white-space:nowrap}
+.filt:hover{border-color:var(--accent);color:var(--accent)}
+.filt.on{border-color:var(--accent);color:var(--accent);font-weight:500}
+.filt b{font-size:10px;font-weight:400;color:var(--ink3)}
+.filt.on b{color:var(--accent)}
+#barPanel[hidden]{display:none}
+#barQuick{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+.card{background:var(--raised);border:1px solid var(--rule);border-radius:16px;
+  box-shadow:var(--shadow);padding:34px 30px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:.55}
+.tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink3);display:flex;gap:10px;align-items:center}
+.box-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block}
+.q{font-family:var(--en);font-weight:600;line-height:1.25;margin:18px 0 0;
+  font-size:clamp(2.1rem,8vw,3.4rem);letter-spacing:-.015em;text-wrap:balance}
+.q.small{font-size:clamp(1.35rem,4.6vw,2.1rem)}
+.reading{font-family:var(--jp);font-size:19px;color:var(--accent2);margin-top:8px;font-weight:500}
+.mean{font-family:"Noto Sans SC",var(--ui);font-size:17px;color:var(--ink2);margin-top:4px}
+.ex{border-top:1px dashed var(--rule);margin-top:20px;padding-top:18px}
+.ex-en{font-family:var(--en);font-size:20px;line-height:1.6;color:var(--ink)}
+.ex-jp{font-family:var(--jp);font-size:14.5px;line-height:1.9;color:var(--ink2)}
+.hint{margin-top:22px;font-size:12.5px;color:var(--ink3);font-family:var(--mono)}
+.grade{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:20px}
+.grade button{padding:14px 6px;border-radius:11px;border:1px solid var(--rule);
+  background:var(--surface);font-weight:500;font-size:14.5px;transition:.15s}
+.grade button:hover{transform:translateY(-1px)}
+.grade button b{display:block;font-family:var(--mono);font-size:10px;font-weight:400;
+  color:var(--ink3);letter-spacing:.06em;margin-top:2px}
+.g1{color:var(--bad)} .g1:hover{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 9%,var(--surface))}
+.g2{color:var(--warn)} .g2:hover{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 9%,var(--surface))}
+.g3{color:var(--ok)} .g3:hover{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,var(--surface))}
+kbd{display:inline-block;font-family:var(--mono);font-size:10px;line-height:1.4;
+  min-width:1.35em;text-align:center;padding:1px 4px;margin:0 1px;color:var(--ink2);
+  background:var(--surface2);border:1px solid var(--rule);border-bottom-width:2px;border-radius:4px}
+.grade button:hover kbd{border-color:currentColor;color:currentColor}
+.hint kbd{margin:0 2px}
+.reveal{animation:rise .16s ease-out}
+@keyframes rise{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.speak{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;
+  color:var(--accent);border:1px solid var(--rule);border-radius:999px;padding:4px 11px;letter-spacing:.05em}
+.speak:hover{background:var(--surface2)}
+.foot{display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap}
+.foot .note{margin-left:auto}
+.nav{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);
+  border:1px solid var(--rule);border-radius:999px;padding:5px 13px;transition:.15s}
+.nav b{font-family:var(--mono);font-size:9.5px;font-weight:400;color:var(--ink3);letter-spacing:.06em}
+.nav:hover:not([disabled]){border-color:var(--accent);color:var(--accent)}
+.nav[disabled]{opacity:.3;cursor:default}
+.nav.tog[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.nav.tog[aria-pressed="true"] b{color:var(--accent);font-weight:600}
+.done-mark{font-family:var(--mono);font-size:10px;color:var(--warn);
+  border:1px solid var(--warn);border-radius:3px;padding:0 5px;margin-left:6px}
+.empty-btns{margin-top:22px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+ruby{ruby-position:over;-webkit-ruby-position:before}
+rt{font-family:var(--jp);font-size:.5em;font-weight:400;color:var(--ink3);letter-spacing:0;line-height:1.15;text-align:center}
+[data-furi="on"] .ex-jp,[data-furi="on"] .row-meta{line-height:2.1}
+
+.lv{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.04em;
+  padding:1px 5px 1px 4px;border-left:2px solid;border-radius:2px;background:var(--surface2);white-space:nowrap}
+.lv3{color:var(--ok);border-color:var(--ok)}
+.lv2{color:var(--accent);border-color:var(--accent)}
+.lv1{color:var(--bad);border-color:var(--bad)}
+.row-side{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.row.num{grid-template-columns:auto 1fr auto}
+.no{font-family:var(--mono);font-size:11px;color:var(--ink3);min-width:3.1em;
+  text-align:right;padding:4px 10px 0 0;line-height:1.4;border:0;background:none;align-self:start;transition:.15s}
+.no:hover{color:var(--accent)}
+.no.on{color:var(--onAccent);background:var(--accent);border-radius:5px;
+  padding:2px 6px;margin-right:10px;min-width:0;font-weight:600;align-self:start}
+.resume{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px 14px;
+  border:1px solid var(--rule);border-left:3px solid var(--accent);border-radius:8px;
+  background:var(--surface);font-size:13px;color:var(--ink2)}
+.resume b{font-family:var(--mono);color:var(--accent)}
+
+.rows{display:flex;flex-direction:column;gap:0;margin-top:6px}
+.row{border-bottom:1px solid var(--rule2);padding:16px 2px;display:grid;
+  grid-template-columns:1fr auto;gap:12px;align-items:start}
+.row:last-child{border-bottom:0}
+.row-main{min-width:0}
+.row-en{font-family:var(--en);font-size:19px;line-height:1.5;color:var(--ink)}
+.row-en em{font-style:normal;color:var(--accent2);font-weight:600}
+.row-zh{font-family:"Noto Sans SC",var(--ui);font-size:14px;color:var(--ink2);margin-top:3px}
+.row-meta{font-family:var(--jp);font-size:13px;color:var(--ink3);margin-top:5px}
+.group-head{font-family:var(--jp);font-size:14px;letter-spacing:.14em;color:var(--accent);
+  margin:34px 0 4px;padding-bottom:7px;border-bottom:1px solid var(--rule);font-weight:700}
+.group-head:first-child{margin-top:8px}
+.group-head span{font-family:var(--mono);font-size:10.5px;color:var(--ink3);letter-spacing:.04em;float:right;font-weight:400}
+
+.opts{display:flex;flex-direction:column;gap:9px;margin-top:22px}
+.opt{text-align:left;padding:14px 16px;border:1px solid var(--rule);border-radius:11px;
+  background:var(--surface);font-size:16px;transition:.14s}
+.opt:hover:not([disabled]){border-color:var(--accent)}
+.opt[disabled]{cursor:default}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--surface));color:var(--ok);font-weight:600}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,var(--surface));color:var(--bad)}
+.opt .en{font-family:var(--en);font-size:18px}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:2px 28px;margin:8px 0 30px}
+.stat{padding:14px 0;border-bottom:1px solid var(--rule2)}
+.stat-n{font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;line-height:1.1}
+.stat-l{font-size:12.5px;color:var(--ink3);margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink3);font-weight:400;padding:0 0 8px;border-bottom:1px solid var(--rule)}
+td{padding:11px 0;border-bottom:1px solid var(--rule2)}
+td.n{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.tbl-wrap{overflow-x:auto}
+.danger{color:var(--bad)}
+.empty{text-align:center;padding:70px 20px;color:var(--ink3)}
+.empty .big{font-family:var(--jp);font-size:24px;color:var(--ink2);margin-bottom:10px}
+.progress-line{height:2px;background:var(--rule2);margin-top:11px;border-radius:2px;overflow:hidden}
+.progress-line i{display:block;height:100%;background:var(--accent);transition:width .3s}
+
+@media (max-width:720px){
+  #app{grid-template-columns:1fr}
+  #rail{position:fixed;bottom:0;top:auto;left:0;right:0;height:auto;flex-direction:row;
+    border-right:0;border-top:1px solid var(--rule);padding:6px 4px;gap:0;justify-content:space-around;z-index:20}
+  .brand{display:none} #rail .spacer{display:none}
+  .tab{writing-mode:horizontal-tb;letter-spacing:.02em;font-size:13px;padding:7px 10px;flex:1;text-align:center}
+  .tab small{display:none}
+  .icon-btn{width:34px;height:34px;font-size:15px}
+  main{padding-bottom:74px}
+  .wrap{padding:18px 16px}
+  .bar{padding:12px 16px 10px}
+  .card{padding:26px 20px;border-radius:14px}
+  .grade button{padding:13px 4px;font-size:13.5px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head><body><div id="app">
+  <nav id="rail" role="tablist" aria-label="学習モード">
+    <div class="brand">英単語ノート</div>
+    <button class="tab" role="tab" data-view="cards">単語<small>SRS</small></button>
+    <button class="tab" role="tab" data-view="grammar">熟語<small>PHRASE</small></button>
+    <button class="tab" role="tab" data-view="speak">例文<small>LISTEN</small></button>
+    <button class="tab" role="tab" data-view="quiz">小試験<small>4択</small></button>
+    <button class="tab" role="tab" data-view="stats">記録<small>LOG</small></button>
+    <div class="spacer"></div>
+    <button class="icon-btn" id="themeBtn" title="配色を切り替える" aria-label="配色を切り替える">◐</button>
+  </nav>
+  <main>
+    <div class="bar">
+      <div class="bar-row">
+        <h1 id="vTitle">単語</h1>
+        <span class="sub" id="vSub"></span>
+        <span id="barQuick"></span>
+        <button class="filt" id="barToggle" aria-expanded="false">絞り込み<b>▾</b></button>
+      </div>
+      <div id="barPanel" hidden>
+        <div class="bar-row" style="margin-top:9px" id="barTools"></div>
+        <div class="bar-row" style="margin-top:7px" id="barTools2"></div>
+      </div>
+    </div>
+    <div class="wrap" id="view"></div>
+  </main>
+</div>
+<script>
+const VOCAB=[],GRAM=[],SPK=[];
+let _c="";
+const P0=s=>s.replace(/[（(][^）)]*[）)]/g,"");
+const E={push:a=>VOCAB.push({_t:"V",w:a[0],c:a[1],r:a[2],ex:a[3],exc:a[4],lv:a[5],cat:_c})};
+const P={push:a=>GRAM.push({_t:"G",p:a[0],c:a[1],note:a[2],ex:a[3],exc:a[4],lv:a[5],cat:_c})};
+const S={push:a=>SPK.push({_t:"S",jp:a[0],zh:a[1],exc:a[2],lv:a[3],cat:_c})};
+_c="動詞・基本";
+E.push(["become","成为","〜になる","She became a doctor last year.","彼女(かのじょ)は去年(きょねん)医者(いしゃ)になった。",3]);
+E.push(["bring","带来","持(も)ってくる","Please bring your dictionary tomorrow.","明日(あした)辞書(じしょ)を持(も)ってきてください。",3]);
+E.push(["build","建造","建(た)てる","They built a new library here.","彼(かれ)らはここに新(あたら)しい図書館(としょかん)を建(た)てた。",3]);
+E.push(["carry","搬运；携带","運(はこ)ぶ","He carried the heavy box for me.","彼(かれ)は私(わたし)のために重(おも)い箱(はこ)を運(はこ)んでくれた。",3]);
+E.push(["catch","抓住；赶上","つかまえる；間(ま)に合(あ)う","I ran fast and caught the bus.","私(わたし)は速(はや)く走(はし)ってバスに間(ま)に合(あ)った。",3]);
+E.push(["change","改变","変(か)える；変(か)わる","We must change our plan.","私(わたし)たちは計画(けいかく)を変(か)えなければならない。",3]);
+E.push(["choose","选择","選(えら)ぶ","Choose one book from these.","この中(なか)から本(ほん)を一冊(いっさつ)選(えら)びなさい。",2]);
+E.push(["collect","收集","集(あつ)める","My brother collects old coins.","兄(あに)は古(ふる)いコインを集(あつ)めている。",2]);
+E.push(["communicate","交流沟通","意思(いし)を伝(つた)え合(あ)う","We can communicate with people abroad.","海外(かいがい)の人(ひと)と意思(いし)を伝(つた)え合(あ)うことができる。",2]);
+E.push(["compare","比较","比(くら)べる","Compare this picture with that one.","この絵(え)とあの絵(え)を比(くら)べなさい。",1]);
+E.push(["continue","继续","続(つづ)ける","She continued to study English.","彼女(かのじょ)は英語(えいご)の勉強(べんきょう)を続(つづ)けた。",2]);
+E.push(["create","创造","作(つく)り出(だ)す","The artist created a new work.","その芸術家(げいじゅつか)は新(あたら)しい作品(さくひん)を作(つく)り出(だ)した。",1]);
+E.push(["decide","决定","決(き)める","I decided to join the club.","私(わたし)はその部(ぶ)に入(はい)ることに決(き)めた。",2]);
+E.push(["describe","描述","説明(せつめい)する","Describe the picture in English.","その絵(え)を英語(えいご)で説明(せつめい)しなさい。",1]);
+E.push(["destroy","破坏","破壊(はかい)する","The fire destroyed many houses.","火事(かじ)が多(おお)くの家(いえ)を破壊(はかい)した。",1]);
+E.push(["discover","发现","発見(はっけん)する","He discovered a new star.","彼(かれ)は新(あたら)しい星(ほし)を発見(はっけん)した。",1]);
+E.push(["enjoy","享受","楽(たの)しむ","We enjoyed talking with them.","私(わたし)たちは彼(かれ)らと話(はな)すのを楽(たの)しんだ。",3]);
+E.push(["expect","期待；预料","期待(きたい)する","I expect you to come on time.","時間(じかん)どおりに来(く)ることを期待(きたい)しています。",1]);
+E.push(["explain","说明","説明(せつめい)する","Please explain the reason.","理由(りゆう)を説明(せつめい)してください。",2]);
+E.push(["express","表达","表現(ひょうげん)する","He expressed his opinion clearly.","彼(かれ)は自分(じぶん)の意見(いけん)をはっきり表現(ひょうげん)した。",1]);
+E.push(["feel","感觉","感(かん)じる","I felt very happy then.","そのとき私(わたし)はとても幸(しあわ)せに感(かん)じた。",3]);
+E.push(["fill","装满","満(み)たす","Fill the glass with water.","コップを水(みず)で満(み)たしなさい。",2]);
+E.push(["finish","完成","終(お)える","Finish your homework first.","まず宿題(しゅくだい)を終(お)えなさい。",3]);
+E.push(["follow","跟随；遵守","従(したが)う","Follow the rules of the school.","学校(がっこう)の規則(きそく)に従(したが)いなさい。",2]);
+E.push(["happen","发生","起(お)こる","What happened to you?","あなたに何(なに)が起(お)こったのですか。",2]);
+E.push(["hold","握住；举办","持(も)つ；開(ひら)く","We will hold a meeting tomorrow.","明日(あした)会議(かいぎ)を開(ひら)きます。",2]);
+E.push(["hope","希望","望(のぞ)む","I hope you will get well soon.","早(はや)くよくなることを望(のぞ)んでいます。",3]);
+E.push(["imagine","想象","想像(そうぞう)する","Imagine your future life.","将来(しょうらい)の生活(せいかつ)を想像(そうぞう)しなさい。",1]);
+E.push(["improve","改善","改善(かいぜん)する","I want to improve my English.","英語(えいご)を上達(じょうたつ)させたい。",1]);
+E.push(["include","包括","含(ふく)む","The price includes tax.","その値段(ねだん)は税金(ぜいきん)を含(ふく)む。",1]);
+E.push(["increase","增加","増(ふ)える；増(ふ)やす","The number of students increased.","生徒(せいと)の数(かず)が増(ふ)えた。",1]);
+E.push(["introduce","介绍","紹介(しょうかい)する","Let me introduce my friend.","友(とも)だちを紹介(しょうかい)させてください。",2]);
+E.push(["invite","邀请","招待(しょうたい)する","She invited me to her party.","彼女(かのじょ)は私(わたし)をパーティーに招待(しょうたい)した。",2]);
+E.push(["join","参加","参加(さんか)する","I want to join the soccer club.","サッカー部(ぶ)に参加(さんか)したい。",3]);
+E.push(["keep","保持","保(たも)つ；〜し続(つづ)ける","Keep your room clean.","部屋(へや)をきれいに保(たも)ちなさい。",3]);
+E.push(["lead","引导；导致","導(みちび)く","This road leads to the station.","この道(みち)は駅(えき)へ通(つう)じている。",1]);
+E.push(["learn","学习","学(まな)ぶ","We learn a lot from books.","私(わたし)たちは本(ほん)から多(おお)くを学(まな)ぶ。",3]);
+E.push(["lend","借出","貸(か)す","Could you lend me your pen?","ペンを貸(か)していただけますか。",2]);
+E.push(["borrow","借入","借(か)りる","May I borrow this book?","この本(ほん)を借(か)りてもいいですか。",2]);
+E.push(["mean","意思是","意味(いみ)する","What does this word mean?","この単語(たんご)はどういう意味(いみ)ですか。",3]);
+E.push(["move","移动；感动","動(うご)かす；感動(かんどう)させる","Her speech moved us deeply.","彼女(かのじょ)の話(はなし)は私(わたし)たちを深(ふか)く感動(かんどう)させた。",2]);
+E.push(["need","需要","必要(ひつよう)とする","We need more time.","もっと時間(じかん)が必要(ひつよう)だ。",3]);
+E.push(["notice","注意到","気(き)づく","I didn't notice the change.","私(わたし)はその変化(へんか)に気(き)づかなかった。",1]);
+E.push(["offer","提供","申(もう)し出(で)る","He offered to help me.","彼(かれ)は手伝(てつだ)おうと申(もう)し出(で)た。",1]);
+E.push(["pass","通过；递给","渡(わた)す；合格(ごうかく)する","Pass me the salt, please.","塩(しお)を渡(わた)してください。",2]);
+E.push(["perform","表演","演(えん)じる","They performed a play at school.","彼(かれ)らは学校(がっこう)で劇(げき)を演(えん)じた。",1]);
+E.push(["prepare","准备","準備(じゅんび)する","I prepared for the test.","私(わたし)はテストの準備(じゅんび)をした。",2]);
+E.push(["produce","生产","生産(せいさん)する","This country produces rice.","この国(くに)は米(こめ)を生産(せいさん)している。",1]);
+E.push(["protect","保护","守(まも)る","We must protect the environment.","私(わたし)たちは環境(かんきょう)を守(まも)らなければならない。",2]);
+E.push(["provide","提供","提供(ていきょう)する","The school provides free lunch.","学校(がっこう)は無料(むりょう)の昼食(ちゅうしょく)を提供(ていきょう)する。",1]);
+E.push(["realize","意识到","気(き)づく；実現(じつげん)する","I realized my mistake.","私(わたし)は自分(じぶん)の間違(まちが)いに気(き)づいた。",1]);
+E.push(["receive","收到","受(う)け取(と)る","I received a letter from him.","彼(かれ)から手紙(てがみ)を受(う)け取(と)った。",2]);
+E.push(["recommend","推荐","勧(すす)める","I recommend this book to you.","この本(ほん)をあなたに勧(すす)めます。",1]);
+E.push(["remember","记得","覚(おぼ)えている","Do you remember his name?","彼(かれ)の名前(なまえ)を覚(おぼ)えていますか。",3]);
+E.push(["forget","忘记","忘(わす)れる","Don't forget to call me.","私(わたし)に電話(でんわ)するのを忘(わす)れないで。",3]);
+E.push(["repeat","重复","繰(く)り返(かえ)す","Please repeat after me.","私(わたし)のあとについて繰(く)り返(かえ)してください。",2]);
+E.push(["report","报告","報告(ほうこく)する","She reported the news to us.","彼女(かのじょ)はその知(し)らせを私(わたし)たちに報告(ほうこく)した。",2]);
+E.push(["return","返回；归还","帰(かえ)る；返(かえ)す","He returned home late.","彼(かれ)は遅(おそ)く家(いえ)に帰(かえ)った。",2]);
+E.push(["save","拯救；节省","救(すく)う；節約(せつやく)する","We should save water.","水(みず)を節約(せつやく)すべきだ。",2]);
+E.push(["share","分享","分(わ)け合(あ)う","Let's share this cake.","このケーキを分(わ)け合(あ)おう。",2]);
+E.push(["show","展示","見(み)せる","Show me your notebook.","ノートを見(み)せてください。",3]);
+E.push(["solve","解决","解決(かいけつ)する","We must solve this problem.","この問題(もんだい)を解決(かいけつ)しなければならない。",1]);
+E.push(["spend","花费","費(つい)やす","I spent two hours on it.","私(わたし)はそれに二時間(にじかん)を費(つい)やした。",2]);
+E.push(["support","支持","支(ささ)える","My family supported my dream.","家族(かぞく)が私(わたし)の夢(ゆめ)を支(ささ)えてくれた。",2]);
+E.push(["throw","扔","投(な)げる","Don't throw trash on the street.","道(みち)にごみを捨(す)ててはいけない。",2]);
+E.push(["understand","理解","理解(りかい)する","I can't understand this question.","この問題(もんだい)が理解(りかい)できない。",3]);
+E.push(["visit","访问","訪(おとず)れる","We visited Kyoto last summer.","私(わたし)たちは昨年(さくねん)の夏(なつ)に京都(きょうと)を訪(おとず)れた。",3]);
+E.push(["wish","希望","願(ねが)う","I wish I could fly.","飛(と)べたらいいのにと願(ねが)う。",2]);
+E.push(["worry","担心","心配(しんぱい)する","Don't worry about the test.","テストのことを心配(しんぱい)しないで。",2]);
+E.push(["agree","同意","賛成(さんせい)する","I agree with your idea.","あなたの考(かんが)えに賛成(さんせい)です。",2]);
+E.push(["arrive","到达","到着(とうちゃく)する","We arrived at the station.","私(わたし)たちは駅(えき)に到着(とうちゃく)した。",2]);
+E.push(["believe","相信","信(しん)じる","I believe he is honest.","彼(かれ)は正直(しょうじき)だと信(しん)じている。",2]);
+E.push(["belong","属于","属(ぞく)する","I belong to the tennis team.","私(わたし)はテニス部(ぶ)に所属(しょぞく)している。",2]);
+E.push(["care","关心","気(き)にかける","She cares about her friends.","彼女(かのじょ)は友(とも)だちを気(き)にかけている。",2]);
+E.push(["cause","引起","引(ひ)き起(お)こす","Smoking causes many diseases.","喫煙(きつえん)は多(おお)くの病気(びょうき)を引(ひ)き起(お)こす。",1]);
+E.push(["check","检查","確認(かくにん)する","Check your answers again.","答(こた)えをもう一度(いちど)確認(かくにん)しなさい。",2]);
+E.push(["climb","攀登","登(のぼ)る","We climbed Mt. Fuji.","私(わたし)たちは富士山(ふじさん)に登(のぼ)った。",3]);
+E.push(["cover","覆盖","覆(おお)う","Snow covered the ground.","雪(ゆき)が地面(じめん)を覆(おお)った。",2]);
+E.push(["cross","穿过","横断(おうだん)する","Be careful when you cross the road.","道(みち)を横断(おうだん)するときは気(き)をつけて。",2]);
+E.push(["draw","画；拉","描(えが)く","She drew a picture of a cat.","彼女(かのじょ)は猫(ねこ)の絵(え)を描(えが)いた。",3]);
+E.push(["drop","掉落","落(お)とす","I dropped my pen on the floor.","私(わたし)はペンを床(ゆか)に落(お)とした。",2]);
+E.push(["exchange","交换","交換(こうかん)する","We exchanged e-mail addresses.","私(わたし)たちはメールアドレスを交換(こうかん)した。",1]);
+E.push(["fail","失败","失敗(しっぱい)する","Don't be afraid to fail.","失敗(しっぱい)することを恐(おそ)れないで。",1]);
+E.push(["fix","修理","直(なお)す","Can you fix my bike?","私(わたし)の自転車(じてんしゃ)を直(なお)せますか。",2]);
+E.push(["guess","猜","推測(すいそく)する","Guess what I bought.","私(わたし)が何(なに)を買(か)ったか当(あ)ててみて。",2]);
+E.push(["hurry","赶快","急(いそ)ぐ","Hurry up, or you'll be late.","急(いそ)ぎなさい、さもないと遅(おく)れますよ。",2]);
+E.push(["invent","发明","発明(はつめい)する","He invented a useful machine.","彼(かれ)は役(やく)に立(た)つ機械(きかい)を発明(はつめい)した。",1]);
+E.push(["marry","结婚","結婚(けっこん)する","She married a doctor.","彼女(かのじょ)は医者(いしゃ)と結婚(けっこん)した。",2]);
+E.push(["order","命令；点餐","注文(ちゅうもん)する","I ordered a cup of coffee.","私(わたし)はコーヒーを一杯(いっぱい)注文(ちゅうもん)した。",2]);
+E.push(["plant","种植","植(う)える","They planted trees in the park.","彼(かれ)らは公園(こうえん)に木(き)を植(う)えた。",2]);
+E.push(["practice","练习","練習(れんしゅう)する","I practice the piano every day.","私(わたし)は毎日(まいにち)ピアノを練習(れんしゅう)する。",3]);
+E.push(["raise","举起；饲养","上(あ)げる；育(そだ)てる","Raise your hand if you know.","わかったら手(て)を上(あ)げなさい。",2]);
+E.push(["reach","到达","到着(とうちゃく)する；届(とど)く","We reached the top at noon.","私(わたし)たちは正午(しょうご)に頂上(ちょうじょう)に着(つ)いた。",2]);
+E.push(["reduce","减少","減(へ)らす","We should reduce plastic waste.","プラスチックごみを減(へ)らすべきだ。",1]);
+E.push(["respect","尊敬","尊敬(そんけい)する","I respect my teacher very much.","私(わたし)は先生(せんせい)をとても尊敬(そんけい)している。",1]);
+E.push(["seem","似乎","〜のように見(み)える","He seems tired today.","彼(かれ)は今日(きょう)疲(つか)れているように見(み)える。",1]);
+E.push(["sell","卖","売(う)る","This shop sells fresh fruit.","この店(みせ)は新鮮(しんせん)な果物(くだもの)を売(う)っている。",3]);
+E.push(["shake","摇动","振(ふ)る","They shook hands with each other.","彼(かれ)らは互(たが)いに握手(あくしゅ)をした。",2]);
+E.push(["smile","微笑","ほほえむ","She smiled at me kindly.","彼女(かのじょ)は優(やさ)しく私(わたし)にほほえんだ。",3]);
+E.push(["suggest","建议","提案(ていあん)する","He suggested going by bus.","彼(かれ)はバスで行(い)くことを提案(ていあん)した。",1]);
+E.push(["surprise","使惊讶","驚(おどろ)かせる","The news surprised everyone.","その知(し)らせはみんなを驚(おどろ)かせた。",2]);
+E.push(["thank","感谢","感謝(かんしゃ)する","I thanked him for his help.","私(わたし)は彼(かれ)の助(たす)けに感謝(かんしゃ)した。",3]);
+E.push(["travel","旅行","旅行(りょこう)する","I want to travel around the world.","世界中(せかいじゅう)を旅行(りょこう)したい。",2]);
+E.push(["try","尝试","試(ため)す","Try to answer this question.","この問題(もんだい)に答(こた)えようとしなさい。",3]);
+E.push(["turn","转动；变成","回(まわ)す；〜になる","The leaves turned red.","葉(は)が赤(あか)くなった。",2]);
+E.push(["use","使用","使(つか)う","May I use your phone?","電話(でんわ)を使(つか)ってもいいですか。",3]);
+E.push(["waste","浪费","むだにする","Don't waste your time.","時間(じかん)をむだにしてはいけない。",1]);
+E.push(["welcome","欢迎","歓迎(かんげい)する","They welcomed us warmly.","彼(かれ)らは私(わたし)たちを温(あたた)かく歓迎(かんげい)した。",2]);
+E.push(["wonder","想知道","〜かしらと思(おも)う","I wonder where she is now.","彼女(かのじょ)は今(いま)どこにいるのかしら。",1]);
+_c="不規則動詞";
+E.push(["be","是","〜である〔was, were / been〕","I was very tired last night.","昨夜(さくや)私(わたし)はとても疲(つか)れていた。",3]);
+E.push(["begin","开始","始(はじ)める〔began / begun〕","The class began at nine.","授業(じゅぎょう)は九時(くじ)に始(はじ)まった。",3]);
+E.push(["break","打破","壊(こわ)す〔broke / broken〕","He broke the window by mistake.","彼(かれ)は誤(あやま)って窓(まど)を壊(こわ)した。",3]);
+E.push(["buy","买","買(か)う〔bought / bought〕","I bought a new bag yesterday.","私(わたし)は昨日(きのう)新(あたら)しいかばんを買(か)った。",3]);
+E.push(["come","来","来(く)る〔came / come〕","She came to Japan three years ago.","彼女(かのじょ)は三年前(さんねんまえ)に日本(にほん)へ来(き)た。",3]);
+E.push(["cost","花费","〔費用(ひよう)が〕かかる〔cost / cost〕","This book cost me 1,000 yen.","この本(ほん)は千円(せんえん)かかった。",2]);
+E.push(["cut","切","切(き)る〔cut / cut〕","She cut the paper with scissors.","彼女(かのじょ)ははさみで紙(かみ)を切(き)った。",3]);
+E.push(["do","做","する〔did / done〕","I have already done my homework.","私(わたし)はもう宿題(しゅくだい)をやり終(お)えた。",3]);
+E.push(["drink","喝","飲(の)む〔drank / drunk〕","He drank a glass of milk.","彼(かれ)は牛乳(ぎゅうにゅう)を一杯(いっぱい)飲(の)んだ。",3]);
+E.push(["drive","开车","運転(うんてん)する〔drove / driven〕","My father drives to work.","父(ちち)は車(くるま)で通勤(つうきん)している。",2]);
+E.push(["eat","吃","食(た)べる〔ate / eaten〕","Have you eaten lunch yet?","もう昼食(ちゅうしょく)を食(た)べましたか。",3]);
+E.push(["fall","落下","落(お)ちる〔fell / fallen〕","The leaves fall in autumn.","秋(あき)には葉(は)が落(お)ちる。",2]);
+E.push(["fight","战斗","戦(たたか)う〔fought / fought〕","They fought against the disease.","彼(かれ)らはその病気(びょうき)と戦(たたか)った。",2]);
+E.push(["find","找到","見(み)つける〔found / found〕","I found my key under the desk.","私(わたし)は机(つくえ)の下(した)でかぎを見(み)つけた。",3]);
+E.push(["fly","飞","飛(と)ぶ〔flew / flown〕","Birds flew over the lake.","鳥(とり)が湖(みずうみ)の上(うえ)を飛(と)んだ。",2]);
+E.push(["get","得到","手(て)に入(い)れる〔got / gotten〕","I got a letter from my friend.","友(とも)だちから手紙(てがみ)をもらった。",3]);
+E.push(["give","给","与(あた)える〔gave / given〕","He gave me some advice.","彼(かれ)は私(わたし)に助言(じょげん)をくれた。",3]);
+E.push(["go","去","行(い)く〔went / gone〕","We went to the museum last Sunday.","先週(せんしゅう)の日曜日(にちようび)に博物館(はくぶつかん)へ行(い)った。",3]);
+E.push(["grow","成长；种植","育(そだ)つ〔grew / grown〕","Rice grows well in this area.","この地域(ちいき)では米(こめ)がよく育(そだ)つ。",2]);
+E.push(["have","有","持(も)っている〔had / had〕","I have lived here for ten years.","私(わたし)はここに十年間(じゅうねんかん)住(す)んでいる。",3]);
+E.push(["hear","听见","聞(き)こえる〔heard / heard〕","I heard a strange sound.","私(わたし)は変(へん)な音(おと)を聞(き)いた。",3]);
+E.push(["hide","隐藏","隠(かく)す〔hid / hidden〕","He hid the letter in the box.","彼(かれ)は手紙(てがみ)を箱(はこ)に隠(かく)した。",2]);
+E.push(["hit","打；击中","打(う)つ〔hit / hit〕","The ball hit the window.","ボールが窓(まど)に当(あ)たった。",2]);
+E.push(["hurt","伤害","傷(きず)つける〔hurt / hurt〕","I hurt my leg during the game.","試合中(しあいちゅう)に足(あし)をけがした。",2]);
+E.push(["know","知道","知(し)っている〔knew / known〕","I have known him since childhood.","子(こ)どものころから彼(かれ)を知(し)っている。",3]);
+E.push(["leave","离开；留下","去(さ)る〔left / left〕","She left Japan last month.","彼女(かのじょ)は先月(せんげつ)日本(にほん)を去(さ)った。",2]);
+E.push(["let","让","〜させる〔let / let〕","Let me help you.","お手伝(てつだ)いさせてください。",2]);
+E.push(["lose","丢失；输","失(うしな)う〔lost / lost〕","Our team lost the game.","私(わたし)たちのチームは試合(しあい)に負(ま)けた。",3]);
+E.push(["make","制作","作(つく)る〔made / made〕","This desk is made of wood.","この机(つくえ)は木(き)で作(つく)られている。",3]);
+E.push(["meet","遇见","会(あ)う〔met / met〕","I met her at the station.","私(わたし)は駅(えき)で彼女(かのじょ)に会(あ)った。",3]);
+E.push(["pay","支付","支払(しはら)う〔paid / paid〕","I paid 500 yen for the ticket.","切符(きっぷ)に五百円(ごひゃくえん)支払(しはら)った。",2]);
+E.push(["put","放","置(お)く〔put / put〕","Put your bag on the chair.","かばんをいすの上(うえ)に置(お)きなさい。",3]);
+E.push(["read","读","読(よ)む〔read / read〕","I have read this book twice.","私(わたし)はこの本(ほん)を二回(にかい)読(よ)んだ。",3]);
+E.push(["ride","骑","乗(の)る〔rode / ridden〕","He rode a bike to school.","彼(かれ)は自転車(じてんしゃ)で学校(がっこう)へ行(い)った。",2]);
+E.push(["ring","响","鳴(な)る〔rang / rung〕","The phone rang suddenly.","電話(でんわ)が突然(とつぜん)鳴(な)った。",2]);
+E.push(["rise","上升","上(のぼ)る〔rose / risen〕","The sun rises in the east.","太陽(たいよう)は東(ひがし)から上(のぼ)る。",2]);
+E.push(["run","跑；经营","走(はし)る〔ran / run〕","She runs in the park every morning.","彼女(かのじょ)は毎朝(まいあさ)公園(こうえん)を走(はし)る。",3]);
+E.push(["say","说","言(い)う〔said / said〕","He said that he was busy.","彼(かれ)は忙(いそが)しいと言(い)った。",3]);
+E.push(["see","看见","見(み)る〔saw / seen〕","I saw a movie last night.","昨夜(さくや)映画(えいが)を見(み)た。",3]);
+E.push(["send","寄送","送(おく)る〔sent / sent〕","I sent her a birthday card.","私(わたし)は彼女(かのじょ)に誕生日(たんじょうび)カードを送(おく)った。",3]);
+E.push(["set","设置","置(お)く；定(さだ)める〔set / set〕","Set the table before dinner.","夕食(ゆうしょく)の前(まえ)に食卓(しょくたく)を整(ととの)えなさい。",2]);
+E.push(["shine","照耀","輝(かがや)く〔shone / shone〕","The sun shone brightly.","太陽(たいよう)が明(あか)るく輝(かがや)いた。",2]);
+E.push(["shoot","射击；投篮","撃(う)つ〔shot / shot〕","He shot the ball into the goal.","彼(かれ)はボールをゴールに打(う)ち込(こ)んだ。",1]);
+E.push(["shut","关闭","閉(し)める〔shut / shut〕","Please shut the door quietly.","静(しず)かにドアを閉(し)めてください。",2]);
+E.push(["sing","唱","歌(うた)う〔sang / sung〕","We sang songs together.","私(わたし)たちは一緒(いっしょ)に歌(うた)を歌(うた)った。",3]);
+E.push(["sit","坐","座(すわ)る〔sat / sat〕","Please sit down here.","ここに座(すわ)ってください。",3]);
+E.push(["sleep","睡觉","眠(ねむ)る〔slept / slept〕","I slept only five hours.","私(わたし)は五時間(ごじかん)しか眠(ねむ)らなかった。",3]);
+E.push(["speak","说话","話(はな)す〔spoke / spoken〕","English is spoken in many countries.","英語(えいご)は多(おお)くの国(くに)で話(はな)されている。",3]);
+E.push(["stand","站；忍受","立(た)つ〔stood / stood〕","He stood by the window.","彼(かれ)は窓(まど)のそばに立(た)っていた。",3]);
+E.push(["steal","偷","盗(ぬす)む〔stole / stolen〕","My bike was stolen last week.","先週(せんしゅう)自転車(じてんしゃ)を盗(ぬす)まれた。",2]);
+E.push(["swim","游泳","泳(およ)ぐ〔swam / swum〕","We swam in the sea.","私(わたし)たちは海(うみ)で泳(およ)いだ。",3]);
+E.push(["take","拿；花费","取(と)る〔took / taken〕","It takes an hour to get there.","そこへ行(い)くのに一時間(いちじかん)かかる。",3]);
+E.push(["teach","教","教(おし)える〔taught / taught〕","She teaches us English.","彼女(かのじょ)は私(わたし)たちに英語(えいご)を教(おし)えている。",3]);
+E.push(["tell","告诉","伝(つた)える〔told / told〕","Tell me about your school.","あなたの学校(がっこう)について教(おし)えて。",3]);
+E.push(["think","想","考(かんが)える〔thought / thought〕","I thought it was a good idea.","それはよい考(かんが)えだと思(おも)った。",3]);
+E.push(["wake","醒来","目(め)を覚(さ)ます〔woke / woken〕","I woke up at six this morning.","今朝(けさ)六時(ろくじ)に目(め)が覚(さ)めた。",2]);
+E.push(["wear","穿","身(み)につけている〔wore / worn〕","She was wearing a red coat.","彼女(かのじょ)は赤(あか)いコートを着(き)ていた。",2]);
+E.push(["win","赢","勝(か)つ〔won / won〕","Our team won the game.","私(わたし)たちのチームは試合(しあい)に勝(か)った。",3]);
+E.push(["write","写","書(か)く〔wrote / written〕","This letter was written in English.","この手紙(てがみ)は英語(えいご)で書(か)かれていた。",3]);
+E.push(["bite","咬","かむ〔bit / bitten〕","The dog bit my hand.","その犬(いぬ)は私(わたし)の手(て)をかんだ。",1]);
+E.push(["blow","吹","吹(ふ)く〔blew / blown〕","The wind blew hard last night.","昨夜(さくや)風(かぜ)が強(つよ)く吹(ふ)いた。",2]);
+E.push(["feed","喂","えさをやる〔fed / fed〕","I feed my dog twice a day.","私(わたし)は一日(いちにち)に二回(にかい)犬(いぬ)にえさをやる。",1]);
+E.push(["forgive","原谅","許(ゆる)す〔forgave / forgiven〕","Please forgive me for being late.","遅(おく)れたことを許(ゆる)してください。",1]);
+E.push(["freeze","冻结","凍(こお)る〔froze / frozen〕","The lake froze last winter.","昨年(さくねん)の冬(ふゆ)、湖(みずうみ)が凍(こお)った。",1]);
+E.push(["hang","挂","かける〔hung / hung〕","She hung her coat on the wall.","彼女(かのじょ)はコートを壁(かべ)にかけた。",1]);
+E.push(["lay","放置","横(よこ)たえる〔laid / laid〕","He laid the book on the table.","彼(かれ)は本(ほん)をテーブルに置(お)いた。",1]);
+E.push(["spread","散布","広(ひろ)がる〔spread / spread〕","The news spread quickly.","その知(し)らせは急速(きゅうそく)に広(ひろ)がった。",1]);
+E.push(["sink","下沉","沈(しず)む〔sank / sunk〕","The ship sank in the storm.","その船(ふね)は嵐(あらし)で沈(しず)んだ。",1]);
+E.push(["beat","打败","打(う)ち負(ま)かす〔beat / beaten〕","We beat the strong team.","私(わたし)たちは強(つよ)いチームを打(う)ち負(ま)かした。",1]);
+_c="名詞・学校と日常";
+E.push(["student","学生","生徒(せいと)","Many students joined the event.","多(おお)くの生徒(せいと)がその行事(ぎょうじ)に参加(さんか)した。",3]);
+E.push(["teacher","老师","先生(せんせい)","Our teacher is very kind.","私(わたし)たちの先生(せんせい)はとても親切(しんせつ)だ。",3]);
+E.push(["classmate","同班同学","同級生(どうきゅうせい)","I talked with my classmates.","私(わたし)は同級生(どうきゅうせい)と話(はな)した。",3]);
+E.push(["subject","科目","教科(きょうか)","My favorite subject is math.","私(わたし)の好(す)きな教科(きょうか)は数学(すうがく)だ。",3]);
+E.push(["lesson","课；教训","授業(じゅぎょう)","We had four lessons today.","今日(きょう)は授業(じゅぎょう)が四(よっ)つあった。",3]);
+E.push(["homework","作业","宿題(しゅくだい)","I finished my homework early.","私(わたし)は早(はや)く宿題(しゅくだい)を終(お)えた。",3]);
+E.push(["test","考试","試験(しけん)","We have a math test tomorrow.","明日(あした)数学(すうがく)の試験(しけん)がある。",3]);
+E.push(["grade","成绩；年级","成績(せいせき)；学年(がくねん)","She got a good grade in English.","彼女(かのじょ)は英語(えいご)でよい成績(せいせき)を取(と)った。",2]);
+E.push(["uniform","校服","制服(せいふく)","We wear a uniform at school.","私(わたし)たちは学校(がっこう)で制服(せいふく)を着(き)る。",2]);
+E.push(["club","社团","部活(ぶかつ)","Which club are you in?","あなたは何(なん)の部活(ぶかつ)に入(はい)っていますか。",3]);
+E.push(["member","成员","部員(ぶいん)；一員(いちいん)","He is a member of the brass band.","彼(かれ)は吹奏楽部(すいそうがくぶ)の部員(ぶいん)だ。",2]);
+E.push(["team","队","チーム","Our team practices every day.","私(わたし)たちのチームは毎日(まいにち)練習(れんしゅう)する。",3]);
+E.push(["textbook","课本","教科書(きょうかしょ)","Open your textbook to page ten.","教科書(きょうかしょ)の十(じゅう)ページを開(ひら)きなさい。",3]);
+E.push(["dictionary","词典","辞書(じしょ)","Look up the word in a dictionary.","その語(ご)を辞書(じしょ)で調(しら)べなさい。",3]);
+E.push(["library","图书馆","図書館(としょかん)","I study at the library after school.","私(わたし)は放課後(ほうかご)に図書館(としょかん)で勉強(べんきょう)する。",3]);
+E.push(["speech","演讲","スピーチ","He made a speech in English.","彼(かれ)は英語(えいご)でスピーチをした。",2]);
+E.push(["contest","比赛","コンテスト","She won the speech contest.","彼女(かのじょ)はスピーチコンテストで優勝(ゆうしょう)した。",2]);
+E.push(["festival","节日；文化祭","祭(まつ)り；文化祭(ぶんかさい)","Our school festival is in September.","文化祭(ぶんかさい)は九月(くがつ)にある。",2]);
+E.push(["graduation","毕业","卒業(そつぎょう)","Graduation is in March.","卒業(そつぎょう)は三月(さんがつ)だ。",2]);
+E.push(["entrance","入口；入学","入(い)り口(ぐち)；入学(にゅうがく)","The entrance exam is next month.","入学試験(にゅうがくしけん)は来月(らいげつ)だ。",2]);
+E.push(["experience","经验","経験(けいけん)","It was a good experience for me.","それは私(わたし)にとってよい経験(けいけん)だった。",2]);
+E.push(["example","例子","例(れい)","Give me an example, please.","例(れい)を一(ひと)つ挙(あ)げてください。",2]);
+E.push(["question","问题","質問(しつもん)","May I ask you a question?","質問(しつもん)してもいいですか。",3]);
+E.push(["answer","回答","答(こた)え","Write your answer here.","ここに答(こた)えを書(か)きなさい。",3]);
+E.push(["reason","理由","理由(りゆう)","Tell me the reason.","理由(りゆう)を教(おし)えてください。",2]);
+E.push(["idea","想法","考(かんが)え","That's a good idea.","それはよい考(かんが)えだ。",3]);
+E.push(["opinion","意见","意見(いけん)","What is your opinion?","あなたの意見(いけん)は何(なん)ですか。",2]);
+E.push(["information","信息","情報(じょうほう)","I got useful information online.","私(わたし)はネットで役立(やくだ)つ情報(じょうほう)を得(え)た。",2]);
+E.push(["message","消息","伝言(でんごん)","May I leave a message?","伝言(でんごん)をお願(ねが)いできますか。",2]);
+E.push(["language","语言","言語(げんご)","English is a world language.","英語(えいご)は世界(せかい)の言語(げんご)だ。",2]);
+E.push(["word","单词","単語(たんご)","I don't know this word.","この単語(たんご)を知(し)らない。",3]);
+E.push(["sentence","句子","文(ぶん)","Write a sentence in English.","英語(えいご)で文(ぶん)を書(か)きなさい。",2]);
+E.push(["story","故事","物語(ものがたり)","This story is very interesting.","この物語(ものがたり)はとてもおもしろい。",3]);
+E.push(["family","家人","家族(かぞく)","My family is very important to me.","家族(かぞく)は私(わたし)にとってとても大切(たいせつ)だ。",3]);
+E.push(["parent","父母","親(おや)","My parents work in Tokyo.","私(わたし)の両親(りょうしん)は東京(とうきょう)で働(はたら)いている。",3]);
+E.push(["neighbor","邻居","近所(きんじょ)の人(ひと)","Our neighbors are very friendly.","近所(きんじょ)の人(ひと)たちはとても親(した)しみやすい。",2]);
+E.push(["friend","朋友","友(とも)だち","I made many friends there.","私(わたし)はそこでたくさん友(とも)だちを作(つく)った。",3]);
+E.push(["child","孩子","子(こ)ども","The children played in the park.","子(こ)どもたちは公園(こうえん)で遊(あそ)んだ。",3]);
+E.push(["adult","成年人","大人(おとな)","This movie is for adults.","この映画(えいが)は大人(おとな)向(む)けだ。",2]);
+E.push(["job","工作","仕事(しごと)","What kind of job do you want?","どんな仕事(しごと)がしたいですか。",2]);
+E.push(["work","工作","仕事(しごと)","He finished his work at six.","彼(かれ)は六時(ろくじ)に仕事(しごと)を終(お)えた。",3]);
+E.push(["dream","梦想","夢(ゆめ)","My dream is to be a nurse.","私(わたし)の夢(ゆめ)は看護師(かんごし)になることだ。",3]);
+E.push(["future","未来","将来(しょうらい)","Think about your future.","将来(しょうらい)のことを考(かんが)えなさい。",2]);
+E.push(["life","生活；生命","生活(せいかつ)；命(いのち)","School life is fun.","学校生活(がっこうせいかつ)は楽(たの)しい。",3]);
+E.push(["health","健康","健康(けんこう)","Health is more important than money.","健康(けんこう)はお金(かね)より大切(たいせつ)だ。",2]);
+E.push(["hospital","医院","病院(びょういん)","She works at a hospital.","彼女(かのじょ)は病院(びょういん)で働(はたら)いている。",3]);
+E.push(["doctor","医生","医者(いしゃ)","You should see a doctor.","医者(いしゃ)に診(み)てもらったほうがいい。",3]);
+E.push(["nurse","护士","看護師(かんごし)","The nurse was very kind.","その看護師(かんごし)はとても親切(しんせつ)だった。",2]);
+E.push(["food","食物","食(た)べ物(もの)","Japanese food is popular abroad.","日本(にほん)の食(た)べ物(もの)は海外(かいがい)で人気(にんき)だ。",3]);
+E.push(["meal","一餐","食事(しょくじ)","We had a nice meal together.","私(わたし)たちは一緒(いっしょ)においしい食事(しょくじ)をした。",2]);
+E.push(["breakfast","早餐","朝食(ちょうしょく)","I always eat breakfast.","私(わたし)はいつも朝食(ちょうしょく)を食(た)べる。",3]);
+E.push(["vegetable","蔬菜","野菜(やさい)","Eat more vegetables.","もっと野菜(やさい)を食(た)べなさい。",3]);
+E.push(["fruit","水果","果物(くだもの)","This fruit tastes sweet.","この果物(くだもの)は甘(あま)い味(あじ)がする。",3]);
+E.push(["shop","商店","店(みせ)","There is a new shop near my house.","家(いえ)の近(ちか)くに新(あたら)しい店(みせ)がある。",3]);
+E.push(["restaurant","餐厅","レストラン","We ate at a small restaurant.","私(わたし)たちは小(ちい)さなレストランで食事(しょくじ)をした。",3]);
+E.push(["ticket","票","切符(きっぷ)","I bought two tickets.","私(わたし)は切符(きっぷ)を二枚(にまい)買(か)った。",3]);
+E.push(["money","钱","お金(かね)","I saved money for the trip.","旅行(りょこう)のためにお金(かね)をためた。",3]);
+E.push(["price","价格","値段(ねだん)","The price is too high.","値段(ねだん)が高(たか)すぎる。",2]);
+E.push(["station","车站","駅(えき)","Let's meet at the station.","駅(えき)で会(あ)いましょう。",3]);
+E.push(["airport","机场","空港(くうこう)","We arrived at the airport at noon.","私(わたし)たちは正午(しょうご)に空港(くうこう)に着(つ)いた。",2]);
+E.push(["street","街道","通(とお)り","Don't play in the street.","通(とお)りで遊(あそ)んではいけない。",3]);
+E.push(["bridge","桥","橋(はし)","We walked across the bridge.","私(わたし)たちは橋(はし)を歩(ある)いて渡(わた)った。",2]);
+E.push(["building","建筑物","建物(たてもの)","That building is very tall.","あの建物(たてもの)はとても高(たか)い。",3]);
+E.push(["floor","地板；楼层","床(ゆか)；階(かい)","My room is on the second floor.","私(わたし)の部屋(へや)は二階(にかい)にある。",3]);
+E.push(["field","田地；领域","畑(はたけ)；分野(ぶんや)","He works in the field of science.","彼(かれ)は科学(かがく)の分野(ぶんや)で働(はたら)いている。",1]);
+E.push(["weather","天气","天気(てんき)","How is the weather today?","今日(きょう)の天気(てんき)はどうですか。",3]);
+E.push(["season","季节","季節(きせつ)","Which season do you like best?","どの季節(きせつ)が一番(いちばん)好(す)きですか。",3]);
+E.push(["holiday","假日","休日(きゅうじつ)","We have a holiday next Monday.","来週(らいしゅう)の月曜日(げつようび)は休日(きゅうじつ)だ。",3]);
+E.push(["vacation","假期","休暇(きゅうか)","I visited my aunt during the vacation.","休暇中(きゅうかちゅう)におばを訪(たず)ねた。",2]);
+E.push(["trip","旅行","旅行(りょこう)","We went on a school trip to Nara.","私(わたし)たちは奈良(なら)へ修学旅行(しゅうがくりょこう)に行(い)った。",3]);
+E.push(["event","活动","行事(ぎょうじ)","The event was held last week.","その行事(ぎょうじ)は先週(せんしゅう)行(おこな)われた。",2]);
+E.push(["custom","习俗","習慣(しゅうかん)","Japan has many old customs.","日本(にほん)には古(ふる)い習慣(しゅうかん)が多(おお)い。",1]);
+E.push(["habit","习惯","癖(くせ)；習慣(しゅうかん)","Reading is a good habit.","読書(どくしょ)はよい習慣(しゅうかん)だ。",1]);
+E.push(["rule","规则","規則(きそく)","We must follow the rules.","私(わたし)たちは規則(きそく)に従(したが)わなければならない。",2]);
+E.push(["place","地方","場所(ばしょ)","This is my favorite place.","ここが私(わたし)のお気(き)に入(い)りの場所(ばしょ)だ。",3]);
+E.push(["way","方法；路","方法(ほうほう)；道(みち)","Could you tell me the way to the park?","公園(こうえん)への道(みち)を教(おし)えていただけますか。",3]);
+E.push(["part","部分","部分(ぶぶん)","This is the most difficult part.","ここが一番(いちばん)難(むずか)しい部分(ぶぶん)だ。",2]);
+E.push(["side","一边","側(がわ)","Please stand on the left side.","左側(ひだりがわ)に立(た)ってください。",2]);
+E.push(["point","要点；分数","点(てん)","That's a good point.","それはよい指摘(してき)だ。",2]);
+E.push(["number","数字","数(かず)","The number of visitors increased.","訪問者(ほうもんしゃ)の数(かず)が増(ふ)えた。",3]);
+E.push(["size","尺寸","大(おお)きさ","What size do you wear?","どのサイズを着(き)ますか。",2]);
+E.push(["color","颜色","色(いろ)","What color do you like?","どの色(いろ)が好(す)きですか。",3]);
+E.push(["sound","声音","音(おと)","I heard a strange sound.","私(わたし)は変(へん)な音(おと)を聞(き)いた。",3]);
+E.push(["voice","声音〔人〕","声(こえ)","She has a beautiful voice.","彼女(かのじょ)は美(うつく)しい声(こえ)をしている。",2]);
+E.push(["picture","图片","絵(え)；写真(しゃしん)","Let's take a picture together.","一緒(いっしょ)に写真(しゃしん)を撮(と)ろう。",3]);
+E.push(["movie","电影","映画(えいが)","This movie made me cry.","この映画(えいが)は私(わたし)を泣(な)かせた。",3]);
+E.push(["music","音乐","音楽(おんがく)","I listen to music every night.","私(わたし)は毎晩(まいばん)音楽(おんがく)を聞(き)く。",3]);
+E.push(["sport","运动","スポーツ","Soccer is a popular sport.","サッカーは人気(にんき)のあるスポーツだ。",3]);
+E.push(["game","比赛；游戏","試合(しあい)","We won the game yesterday.","私(わたし)たちは昨日(きのう)試合(しあい)に勝(か)った。",3]);
+E.push(["news","新闻","知(し)らせ；ニュース","I heard the news on TV.","私(わたし)はテレビでその知(し)らせを聞(き)いた。",3]);
+E.push(["newspaper","报纸","新聞(しんぶん)","My father reads a newspaper every morning.","父(ちち)は毎朝(まいあさ)新聞(しんぶん)を読(よ)む。",3]);
+E.push(["letter","信；字母","手紙(てがみ)","I wrote a letter to my grandmother.","私(わたし)は祖母(そぼ)に手紙(てがみ)を書(か)いた。",3]);
+E.push(["computer","电脑","コンピューター","I use a computer for my report.","レポートにコンピューターを使(つか)う。",3]);
+E.push(["Internet","互联网","インターネット","I found it on the Internet.","私(わたし)はそれをインターネットで見(み)つけた。",2]);
+E.push(["phone","电话","電話(でんわ)","May I use your phone?","電話(でんわ)を使(つか)ってもいいですか。",3]);
+E.push(["clock","钟","時計(とけい)","The clock on the wall stopped.","壁(かべ)の時計(とけい)が止(と)まった。",3]);
+E.push(["door","门","ドア","Please close the door.","ドアを閉(し)めてください。",3]);
+E.push(["window","窗户","窓(まど)","Open the window, please.","窓(まど)を開(あ)けてください。",3]);
+E.push(["garden","花园","庭(にわ)","There are many flowers in the garden.","庭(にわ)にはたくさんの花(はな)がある。",3]);
+E.push(["animal","动物","動物(どうぶつ)","We saw many animals at the zoo.","私(わたし)たちは動物園(どうぶつえん)で多(おお)くの動物(どうぶつ)を見(み)た。",3]);
+E.push(["bird","鸟","鳥(とり)","Some birds fly a long way.","長(なが)い距離(きょり)を飛(と)ぶ鳥(とり)もいる。",3]);
+E.push(["tree","树","木(き)","There is a big tree in the park.","公園(こうえん)に大(おお)きな木(き)がある。",3]);
+E.push(["flower","花","花(はな)","These flowers smell sweet.","この花(はな)はいいにおいがする。",3]);
+E.push(["mountain","山","山(やま)","We climbed a high mountain.","私(わたし)たちは高(たか)い山(やま)に登(のぼ)った。",3]);
+E.push(["river","河","川(かわ)","The river is very clean here.","ここでは川(かわ)がとてもきれいだ。",3]);
+E.push(["sea","海","海(うみ)","The sea was calm that day.","その日(ひ)、海(うみ)は穏(おだ)やかだった。",3]);
+E.push(["sky","天空","空(そら)","The sky is clear today.","今日(きょう)は空(そら)が晴(は)れている。",3]);
+_c="名詞・社会とテーマ";
+E.push(["environment","环境","環境(かんきょう)","We must protect the environment.","私(わたし)たちは環境(かんきょう)を守(まも)らなければならない。",2]);
+E.push(["nature","自然","自然(しぜん)","We should live with nature.","私(わたし)たちは自然(しぜん)と共(とも)に生(い)きるべきだ。",2]);
+E.push(["energy","能源","エネルギー","Solar energy is clean.","太陽(たいよう)エネルギーはきれいだ。",2]);
+E.push(["pollution","污染","汚染(おせん)","Air pollution is a serious problem.","大気汚染(たいきおせん)は深刻(しんこく)な問題(もんだい)だ。",1]);
+E.push(["garbage","垃圾","ごみ","Don't throw garbage here.","ここにごみを捨(す)てないで。",2]);
+E.push(["plastic","塑料","プラスチック","We should use less plastic.","プラスチックの使用(しよう)を減(へ)らすべきだ。",2]);
+E.push(["resource","资源","資源(しげん)","Water is an important resource.","水(みず)は大切(たいせつ)な資源(しげん)だ。",1]);
+E.push(["forest","森林","森(もり)","Many forests are disappearing.","多(おお)くの森(もり)が消(き)えつつある。",2]);
+E.push(["temperature","温度","気温(きおん)","The temperature is rising.","気温(きおん)が上(あ)がっている。",1]);
+E.push(["climate","气候","気候(きこう)","Climate change affects everyone.","気候変動(きこうへんどう)はみんなに影響(えいきょう)する。",1]);
+E.push(["earth","地球","地球(ちきゅう)","We have only one earth.","地球(ちきゅう)は一(ひと)つしかない。",2]);
+E.push(["culture","文化","文化(ぶんか)","I want to learn about other cultures.","他(ほか)の文化(ぶんか)について学(まな)びたい。",2]);
+E.push(["tradition","传统","伝統(でんとう)","This festival is a local tradition.","この祭(まつ)りは地元(じもと)の伝統(でんとう)だ。",1]);
+E.push(["country","国家","国(くに)","She comes from a small country.","彼女(かのじょ)は小(ちい)さな国(くに)の出身(しゅっしん)だ。",3]);
+E.push(["world","世界","世界(せかい)","English is used all over the world.","英語(えいご)は世界中(せかいじゅう)で使(つか)われている。",3]);
+E.push(["peace","和平","平和(へいわ)","We hope for world peace.","私(わたし)たちは世界(せかい)の平和(へいわ)を願(ねが)う。",2]);
+E.push(["war","战争","戦争(せんそう)","War brings great sadness.","戦争(せんそう)は大(おお)きな悲(かな)しみをもたらす。",2]);
+E.push(["society","社会","社会(しゃかい)","We live in a changing society.","私(わたし)たちは変化(へんか)する社会(しゃかい)に生(い)きている。",1]);
+E.push(["community","社区","地域(ちいき)","She works for the local community.","彼女(かのじょ)は地域(ちいき)のために働(はたら)いている。",1]);
+E.push(["difference","差异","違(ちが)い","There is a big difference between them.","それらの間(あいだ)には大(おお)きな違(ちが)いがある。",2]);
+E.push(["communication","交流","意思疎通(いしそつう)","Communication is important in a team.","チームでは意思疎通(いしそつう)が大切(たいせつ)だ。",1]);
+E.push(["technology","技术","技術(ぎじゅつ)","Technology is changing our life.","技術(ぎじゅつ)が私(わたし)たちの生活(せいかつ)を変(か)えている。",1]);
+E.push(["science","科学","科学(かがく)","I am interested in science.","私(わたし)は科学(かがく)に興味(きょうみ)がある。",3]);
+E.push(["machine","机器","機械(きかい)","This machine is easy to use.","この機械(きかい)は使(つか)いやすい。",2]);
+E.push(["robot","机器人","ロボット","Robots help us in many ways.","ロボットは様々(さまざま)な形(かたち)で私(わたし)たちを助(たす)ける。",2]);
+E.push(["research","研究","研究(けんきゅう)","He is doing research on plants.","彼(かれ)は植物(しょくぶつ)の研究(けんきゅう)をしている。",1]);
+E.push(["medicine","药；医学","薬(くすり)；医学(いがく)","Take this medicine after meals.","食後(しょくご)にこの薬(くすり)を飲(の)みなさい。",2]);
+E.push(["volunteer","志愿者","ボランティア","She works as a volunteer.","彼女(かのじょ)はボランティアとして働(はたら)いている。",2]);
+E.push(["company","公司","会社(かいしゃ)","My father works for a big company.","父(ちち)は大(おお)きな会社(かいしゃ)で働(はたら)いている。",2]);
+E.push(["office","办公室","事務所(じむしょ)","She left the office at seven.","彼女(かのじょ)は七時(しちじ)に事務所(じむしょ)を出(で)た。",2]);
+E.push(["factory","工厂","工場(こうじょう)","This factory makes cars.","この工場(こうじょう)は車(くるま)を作(つく)っている。",2]);
+E.push(["farmer","农民","農家(のうか)","The farmer grows rice.","その農家(のうか)は米(こめ)を作(つく)っている。",2]);
+E.push(["engineer","工程师","技術者(ぎじゅつしゃ)","He wants to be an engineer.","彼(かれ)は技術者(ぎじゅつしゃ)になりたい。",2]);
+E.push(["scientist","科学家","科学者(かがくしゃ)","The scientist studied the ocean.","その科学者(かがくしゃ)は海(うみ)を研究(けんきゅう)した。",2]);
+E.push(["artist","艺术家","芸術家(げいじゅつか)","She became a famous artist.","彼女(かのじょ)は有名(ゆうめい)な芸術家(げいじゅつか)になった。",2]);
+E.push(["writer","作家","作家(さっか)","This writer is popular among students.","この作家(さっか)は学生(がくせい)に人気(にんき)がある。",2]);
+E.push(["government","政府","政府(せいふ)","The government made a new rule.","政府(せいふ)は新(あたら)しい規則(きそく)を作(つく)った。",1]);
+E.push(["law","法律","法律(ほうりつ)","We must obey the law.","私(わたし)たちは法律(ほうりつ)に従(したが)わなければならない。",1]);
+E.push(["problem","问题","問題(もんだい)","We solved the problem together.","私(わたし)たちは一緒(いっしょ)にその問題(もんだい)を解決(かいけつ)した。",3]);
+E.push(["effort","努力","努力(どりょく)","Your effort will be rewarded.","あなたの努力(どりょく)は報(むく)われるだろう。",1]);
+E.push(["chance","机会","機会(きかい)","This is a good chance for you.","これはあなたにとってよい機会(きかい)だ。",2]);
+E.push(["result","结果","結果(けっか)","The result was better than I thought.","結果(けっか)は思(おも)ったよりよかった。",2]);
+E.push(["effect","影响","影響(えいきょう)","It had a good effect on students.","それは生徒(せいと)によい影響(えいきょう)を与(あた)えた。",1]);
+E.push(["success","成功","成功(せいこう)","Hard work leads to success.","努力(どりょく)は成功(せいこう)につながる。",1]);
+E.push(["safety","安全","安全(あんぜん)","Safety comes first.","安全(あんぜん)が第一(だいいち)だ。",1]);
+E.push(["danger","危险","危険(きけん)","The children were in danger.","子(こ)どもたちは危険(きけん)な状態(じょうたい)にあった。",2]);
+E.push(["accident","事故","事故(じこ)","He had a traffic accident.","彼(かれ)は交通事故(こうつうじこ)に遭(あ)った。",2]);
+E.push(["disaster","灾害","災害(さいがい)","We must prepare for disasters.","私(わたし)たちは災害(さいがい)に備(そな)えなければならない。",1]);
+E.push(["earthquake","地震","地震(じしん)","A big earthquake hit the area.","大(おお)きな地震(じしん)がその地域(ちいき)を襲(おそ)った。",2]);
+E.push(["kindness","善意","親切(しんせつ)","I will never forget your kindness.","あなたの親切(しんせつ)を決(けっ)して忘(わす)れません。",1]);
+E.push(["courage","勇气","勇気(ゆうき)","It takes courage to say no.","断(ことわ)るには勇気(ゆうき)がいる。",1]);
+E.push(["feeling","感觉","気持(きも)ち","I understand your feelings.","あなたの気持(きも)ちがわかります。",2]);
+E.push(["mind","心；想法","心(こころ)；考(かんが)え","She changed her mind.","彼女(かのじょ)は考(かんが)えを変(か)えた。",2]);
+E.push(["heart","心","心(こころ)","He has a warm heart.","彼(かれ)は温(あたた)かい心(こころ)を持(も)っている。",2]);
+E.push(["memory","记忆","思(おも)い出(で)","I have good memories of that trip.","その旅行(りょこう)のよい思(おも)い出(で)がある。",2]);
+E.push(["character","性格；人物","性格(せいかく)；登場人物(とうじょうじんぶつ)","The main character is a young girl.","主人公(しゅじんこう)は若(わか)い女(おんな)の子(こ)だ。",1]);
+E.push(["subjectivity","主观","主観(しゅかん)","Avoid too much subjectivity.","主観(しゅかん)に頼(たよ)りすぎないように。",1]);
+E.push(["condition","状态","状態(じょうたい)","The condition of the road is bad.","道路(どうろ)の状態(じょうたい)が悪(わる)い。",1]);
+E.push(["situation","情况","状況(じょうきょう)","The situation is getting better.","状況(じょうきょう)はよくなってきている。",1]);
+E.push(["system","系统","制度(せいど)；仕組(しく)み","This system works well.","この仕組(しく)みはうまく機能(きのう)している。",1]);
+E.push(["service","服务","サービス","The service at the hotel was good.","そのホテルのサービスはよかった。",2]);
+E.push(["product","产品","製品(せいひん)","This product is made in Japan.","この製品(せいひん)は日本製(にほんせい)だ。",1]);
+E.push(["market","市场","市場(いちば)","We went to the fish market.","私(わたし)たちは魚(さかな)の市場(いちば)へ行(い)った。",2]);
+E.push(["population","人口","人口(じんこう)","The population of this town is small.","この町(まち)の人口(じんこう)は少(すく)ない。",1]);
+E.push(["percent","百分比","パーセント","About 30 percent of students agreed.","生徒(せいと)の約(やく)三十(さんじゅう)パーセントが賛成(さんせい)した。",2]);
+E.push(["amount","数量","量(りょう)","We reduced the amount of waste.","私(わたし)たちはごみの量(りょう)を減(へ)らした。",1]);
+E.push(["century","世纪","世紀(せいき)","This temple was built in the 15th century.","この寺(てら)は十五世紀(じゅうごせいき)に建(た)てられた。",1]);
+E.push(["history","历史","歴史(れきし)","I like studying history.","私(わたし)は歴史(れきし)を学(まな)ぶのが好(す)きだ。",3]);
+E.push(["hero","英雄","英雄(えいゆう)","He is a hero to many children.","彼(かれ)は多(おお)くの子(こ)どもの英雄(えいゆう)だ。",2]);
+E.push(["symbol","象征","象徴(しょうちょう)","The dove is a symbol of peace.","ハトは平和(へいわ)の象徴(しょうちょう)だ。",1]);
+E.push(["purpose","目的","目的(もくてき)","What is the purpose of this trip?","この旅行(りょこう)の目的(もくてき)は何(なん)ですか。",1]);
+E.push(["choice","选择","選択(せんたく)","You have two choices.","あなたには二(ふた)つの選択(せんたく)がある。",1]);
+E.push(["decision","决定","決定(けってい)","It was a difficult decision.","それは難(むずか)しい決定(けってい)だった。",1]);
+E.push(["advice","建议","助言(じょげん)","He gave me useful advice.","彼(かれ)は私(わたし)に役立(やくだ)つ助言(じょげん)をくれた。",1]);
+E.push(["knowledge","知识","知識(ちしき)","She has deep knowledge of music.","彼女(かのじょ)は音楽(おんがく)の深(ふか)い知識(ちしき)がある。",1]);
+E.push(["skill","技能","技能(ぎのう)","Reading skill is necessary.","読(よ)む力(ちから)が必要(ひつよう)だ。",1]);
+E.push(["ability","能力","能力(のうりょく)","He has the ability to lead.","彼(かれ)には人(ひと)を導(みちび)く能力(のうりょく)がある。",1]);
+E.push(["interest","兴趣","興味(きょうみ)","I have an interest in art.","私(わたし)は芸術(げいじゅつ)に興味(きょうみ)がある。",2]);
+E.push(["attention","注意","注意(ちゅうい)","Please pay attention to me.","私(わたし)に注意(ちゅうい)を向(む)けてください。",1]);
+E.push(["trouble","麻烦","困(こま)ったこと","I am in trouble now.","私(わたし)は今(いま)困(こま)っている。",2]);
+E.push(["fear","恐惧","恐(おそ)れ","He spoke without fear.","彼(かれ)は恐(おそ)れずに話(はな)した。",1]);
+E.push(["hunger","饥饿","飢(う)え","Many people suffer from hunger.","多(おお)くの人(ひと)が飢(う)えに苦(くる)しんでいる。",1]);
+E.push(["poverty","贫困","貧困(ひんこん)","Poverty is a global problem.","貧困(ひんこん)は世界的(せかいてき)な問題(もんだい)だ。",1]);
+E.push(["development","发展","発展(はってん)","The development of AI is fast.","AIの発展(はってん)は速(はや)い。",1]);
+E.push(["improvement","改善","改善(かいぜん)","There is room for improvement.","改善(かいぜん)の余地(よち)がある。",1]);
+E.push(["foreigner","外国人","外国人(がいこくじん)","Many foreigners visit Kyoto.","多(おお)くの外国人(がいこくじん)が京都(きょうと)を訪(おとず)れる。",2]);
+E.push(["stranger","陌生人","知(し)らない人(ひと)","Don't talk to strangers.","知(し)らない人(ひと)と話(はな)してはいけない。",2]);
+E.push(["guest","客人","客(きゃく)","We welcomed the guests warmly.","私(わたし)たちは客(きゃく)を温(あたた)かく迎(むか)えた。",2]);
+E.push(["group","小组","集団(しゅうだん)","Work in groups of four.","四人(よにん)の班(はん)で活動(かつどう)しなさい。",3]);
+E.push(["partner","伙伴","相手(あいて)","Talk with your partner in English.","相手(あいて)と英語(えいご)で話(はな)しなさい。",2]);
+E.push(["leader","领导","リーダー","She was chosen as the leader.","彼女(かのじょ)がリーダーに選(えら)ばれた。",2]);
+E.push(["expert","专家","専門家(せんもんか)","He is an expert on birds.","彼(かれ)は鳥(とり)の専門家(せんもんか)だ。",1]);
+E.push(["survey","调查","調査(ちょうさ)","We did a survey in our class.","私(わたし)たちはクラスで調査(ちょうさ)をした。",1]);
+E.push(["graph","图表","グラフ","Look at the graph on page five.","五(ご)ページのグラフを見(み)なさい。",2]);
+E.push(["percentage","百分比","割合(わりあい)","The percentage of users is growing.","利用者(りようしゃ)の割合(わりあい)が増(ふ)えている。",1]);
+E.push(["average","平均","平均(へいきん)","The average temperature is rising.","平均気温(へいきんきおん)が上昇(じょうしょう)している。",1]);
+E.push(["degree","度；程度","度(ど)","It is thirty degrees today.","今日(きょう)は三十度(さんじゅうど)だ。",1]);
+E.push(["distance","距离","距離(きょり)","The distance is about five kilometers.","距離(きょり)は約(やく)五(ご)キロだ。",1]);
+E.push(["space","空间；太空","空間(くうかん)；宇宙(うちゅう)","He wants to travel in space.","彼(かれ)は宇宙(うちゅう)を旅(たび)したい。",2]);
+E.push(["ocean","海洋","海洋(かいよう)","Plastic waste flows into the ocean.","プラスチックごみが海(うみ)に流(なが)れ込(こ)む。",2]);
+E.push(["island","岛","島(しま)","Japan has many small islands.","日本(にほん)には小(ちい)さな島(しま)が多(おお)い。",2]);
+E.push(["village","村庄","村(むら)","She lives in a small village.","彼女(かのじょ)は小(ちい)さな村(むら)に住(す)んでいる。",2]);
+E.push(["capital","首都","首都(しゅと)","Tokyo is the capital of Japan.","東京(とうきょう)は日本(にほん)の首都(しゅと)だ。",2]);
+_c="形容詞";
+E.push(["important","重要的","大切(たいせつ)な","It is important to keep trying.","挑戦(ちょうせん)し続(つづ)けることが大切(たいせつ)だ。",3]);
+E.push(["difficult","困难的","難(むずか)しい","This question is too difficult for me.","この問題(もんだい)は私(わたし)には難(むずか)しすぎる。",3]);
+E.push(["easy","容易的","簡単(かんたん)な","This book is easy to read.","この本(ほん)は読(よ)みやすい。",3]);
+E.push(["different","不同的","違(ちが)う","Our opinions are different.","私(わたし)たちの意見(いけん)は違(ちが)う。",3]);
+E.push(["similar","相似的","似(に)ている","These two words are similar.","この二(ふた)つの語(ご)は似(に)ている。",1]);
+E.push(["popular","受欢迎的","人気(にんき)のある","This song is popular among students.","この歌(うた)は生徒(せいと)に人気(にんき)がある。",3]);
+E.push(["famous","著名的","有名(ゆうめい)な","This city is famous for its castle.","この町(まち)は城(しろ)で有名(ゆうめい)だ。",3]);
+E.push(["useful","有用的","役(やく)に立(た)つ","This dictionary is very useful.","この辞書(じしょ)はとても役(やく)に立(た)つ。",2]);
+E.push(["necessary","必要的","必要(ひつよう)な","Sleep is necessary for health.","睡眠(すいみん)は健康(けんこう)に必要(ひつよう)だ。",2]);
+E.push(["possible","可能的","可能(かのう)な","Is it possible to finish today?","今日中(きょうじゅう)に終(お)えることは可能(かのう)ですか。",2]);
+E.push(["impossible","不可能的","不可能(ふかのう)な","It is impossible to do it alone.","一人(ひとり)でそれをするのは不可能(ふかのう)だ。",1]);
+E.push(["careful","小心的","注意深(ちゅういぶか)い","Be careful when you cross.","渡(わた)るときは注意(ちゅうい)しなさい。",2]);
+E.push(["dangerous","危险的","危険(きけん)な","Swimming here is dangerous.","ここで泳(およ)ぐのは危険(きけん)だ。",2]);
+E.push(["safe","安全的","安全(あんぜん)な","This place is safe for children.","この場所(ばしょ)は子(こ)どもにとって安全(あんぜん)だ。",2]);
+E.push(["quiet","安静的","静(しず)かな","Please be quiet in the library.","図書館(としょかん)では静(しず)かにしてください。",3]);
+E.push(["busy","忙的","忙(いそが)しい","My mother is busy every day.","母(はは)は毎日(まいにち)忙(いそが)しい。",3]);
+E.push(["free","自由的；空闲的","自由(じゆう)な；ひまな","Are you free this afternoon?","今日(きょう)の午後(ごご)はひまですか。",3]);
+E.push(["ready","准备好的","準備(じゅんび)ができた","Are you ready to start?","始(はじ)める準備(じゅんび)はできましたか。",2]);
+E.push(["afraid","害怕的","恐(おそ)れて","I'm afraid of making mistakes.","私(わたし)は間違(まちが)えることを恐(おそ)れている。",2]);
+E.push(["glad","高兴的","うれしい","I'm glad to hear that.","それを聞(き)いてうれしいです。",2]);
+E.push(["sad","悲伤的","悲(かな)しい","The story made me sad.","その話(はなし)は私(わたし)を悲(かな)しくさせた。",3]);
+E.push(["angry","生气的","怒(おこ)った","My father was angry with me.","父(ちち)は私(わたし)に怒(おこ)っていた。",3]);
+E.push(["tired","疲倦的","疲(つか)れた","I was tired after the game.","試合(しあい)のあと私(わたし)は疲(つか)れていた。",3]);
+E.push(["sick","生病的","病気(びょうき)の","She was sick in bed yesterday.","彼女(かのじょ)は昨日(きのう)病気(びょうき)で寝(ね)ていた。",3]);
+E.push(["hungry","饿的","空腹(くうふく)の","I'm very hungry now.","私(わたし)は今(いま)とてもおなかがすいている。",3]);
+E.push(["surprised","惊讶的","驚(おどろ)いた","I was surprised at the news.","私(わたし)はその知(し)らせに驚(おどろ)いた。",2]);
+E.push(["excited","兴奋的","わくわくした","The children were excited.","子(こ)どもたちはわくわくしていた。",2]);
+E.push(["exciting","令人兴奋的","わくわくさせる","The game was very exciting.","その試合(しあい)はとてもわくわくした。",2]);
+E.push(["interesting","有趣的","おもしろい","This book is really interesting.","この本(ほん)は本当(ほんとう)におもしろい。",3]);
+E.push(["boring","无聊的","退屈(たいくつ)な","The movie was boring.","その映画(えいが)は退屈(たいくつ)だった。",2]);
+E.push(["wonderful","极好的","すばらしい","We had a wonderful time.","私(わたし)たちはすばらしい時間(じかん)を過(す)ごした。",2]);
+E.push(["terrible","糟糕的","ひどい","The weather was terrible.","天気(てんき)はひどかった。",2]);
+E.push(["perfect","完美的","完璧(かんぺき)な","Nobody is perfect.","完璧(かんぺき)な人(ひと)はいない。",2]);
+E.push(["special","特别的","特別(とくべつ)な","Today is a special day for me.","今日(きょう)は私(わたし)にとって特別(とくべつ)な日(ひ)だ。",2]);
+E.push(["common","常见的","共通(きょうつう)の；よくある","This is a common mistake.","これはよくある間違(まちが)いだ。",1]);
+E.push(["several","几个的","いくつかの","I have several questions.","私(わたし)にはいくつか質問(しつもん)がある。",1]);
+E.push(["various","各种各样的","さまざまな","There are various opinions.","さまざまな意見(いけん)がある。",1]);
+E.push(["foreign","外国的","外国(がいこく)の","I want to visit foreign countries.","私(わたし)は外国(がいこく)を訪(おとず)れたい。",2]);
+E.push(["local","当地的","地元(じもと)の","We ate local food there.","私(わたし)たちはそこで地元(じもと)の料理(りょうり)を食(た)べた。",1]);
+E.push(["traditional","传统的","伝統的(でんとうてき)な","This is a traditional Japanese dance.","これは日本(にほん)の伝統的(でんとうてき)な踊(おど)りだ。",1]);
+E.push(["modern","现代的","現代(げんだい)の","Modern life is very busy.","現代(げんだい)の生活(せいかつ)はとても忙(いそが)しい。",1]);
+E.push(["recent","最近的","最近(さいきん)の","In recent years, the number has grown.","近年(きんねん)、その数(かず)が増(ふ)えている。",1]);
+E.push(["able","能够的","〜できる","She is able to speak three languages.","彼女(かのじょ)は三(みっ)つの言語(げんご)を話(はな)せる。",2]);
+E.push(["kind","善良的","親切(しんせつ)な","He is kind to everyone.","彼(かれ)はみんなに親切(しんせつ)だ。",3]);
+E.push(["friendly","友好的","親(した)しみやすい","Our new teacher is friendly.","新(あたら)しい先生(せんせい)は親(した)しみやすい。",2]);
+E.push(["honest","诚实的","正直(しょうじき)な","She is an honest person.","彼女(かのじょ)は正直(しょうじき)な人(ひと)だ。",1]);
+E.push(["brave","勇敢的","勇敢(ゆうかん)な","It was a brave decision.","それは勇敢(ゆうかん)な決断(けつだん)だった。",1]);
+E.push(["polite","有礼貌的","礼儀正(れいぎただ)しい","He is always polite to others.","彼(かれ)はいつも人(ひと)に礼儀正(れいぎただ)しい。",1]);
+E.push(["serious","严肃的；严重的","真剣(しんけん)な；深刻(しんこく)な","This is a serious problem.","これは深刻(しんこく)な問題(もんだい)だ。",1]);
+E.push(["active","积极的","活発(かっぱつ)な","She is active in club activities.","彼女(かのじょ)は部活動(ぶかつどう)に積極的(せっきょくてき)だ。",1]);
+E.push(["quick","快的","すばやい","He gave a quick answer.","彼(かれ)はすばやく答(こた)えた。",2]);
+E.push(["slow","慢的","遅(おそ)い","The train was slow today.","今日(きょう)は電車(でんしゃ)が遅(おそ)かった。",3]);
+E.push(["strong","强的","強(つよ)い","He has a strong will.","彼(かれ)は強(つよ)い意志(いし)を持(も)っている。",3]);
+E.push(["weak","弱的","弱(よわ)い","I am weak at math.","私(わたし)は数学(すうがく)が苦手(にがて)だ。",3]);
+E.push(["heavy","重的","重(おも)い","This bag is too heavy.","このかばんは重(おも)すぎる。",3]);
+E.push(["deep","深的","深(ふか)い","The river is deep here.","ここは川(かわ)が深(ふか)い。",2]);
+E.push(["wide","宽的","広(ひろ)い","This road is very wide.","この道(みち)はとても広(ひろ)い。",2]);
+E.push(["narrow","窄的","狭(せま)い","We walked along a narrow street.","私(わたし)たちは狭(せま)い通(とお)りを歩(ある)いた。",1]);
+E.push(["clean","干净的","きれいな","Keep the classroom clean.","教室(きょうしつ)をきれいにしておきなさい。",3]);
+E.push(["dirty","脏的","汚(きたな)い","My shoes are dirty.","私(わたし)の靴(くつ)は汚(きたな)い。",3]);
+E.push(["fresh","新鲜的","新鮮(しんせん)な","We bought fresh vegetables.","私(わたし)たちは新鮮(しんせん)な野菜(やさい)を買(か)った。",2]);
+E.push(["warm","温暖的","暖(あたた)かい","It is warm today.","今日(きょう)は暖(あたた)かい。",3]);
+E.push(["cool","凉爽的；酷","涼(すず)しい","It gets cool in the evening.","夕方(ゆうがた)には涼(すず)しくなる。",3]);
+E.push(["dry","干的","乾(かわ)いた","The air is dry in winter.","冬(ふゆ)は空気(くうき)が乾燥(かんそう)している。",2]);
+E.push(["wet","湿的","ぬれた","My clothes got wet in the rain.","雨(あめ)で服(ふく)がぬれた。",2]);
+E.push(["bright","明亮的","明(あか)るい","The room was bright.","その部屋(へや)は明(あか)るかった。",2]);
+E.push(["dark","黑暗的","暗(くら)い","It gets dark early in winter.","冬(ふゆ)は暗(くら)くなるのが早(はや)い。",3]);
+E.push(["clear","清楚的","はっきりした","Your explanation was clear.","あなたの説明(せつめい)は明快(めいかい)だった。",2]);
+E.push(["rich","富有的","豊(ゆた)かな","This country is rich in nature.","この国(くに)は自然(しぜん)が豊(ゆた)かだ。",2]);
+E.push(["poor","贫穷的；差的","貧(まず)しい；下手(へた)な","He grew up in a poor village.","彼(かれ)は貧(まず)しい村(むら)で育(そだ)った。",2]);
+E.push(["cheap","便宜的","安(やす)い","These shoes are cheap.","この靴(くつ)は安(やす)い。",3]);
+E.push(["expensive","昂贵的","高価(こうか)な","That camera is too expensive.","あのカメラは高(たか)すぎる。",2]);
+E.push(["delicious","美味的","おいしい","The cake was delicious.","そのケーキはおいしかった。",3]);
+E.push(["healthy","健康的","健康(けんこう)な","Eating vegetables keeps you healthy.","野菜(やさい)を食(た)べると健康(けんこう)でいられる。",2]);
+E.push(["natural","自然的","自然(しぜん)の","It is natural to feel nervous.","緊張(きんちょう)するのは自然(しぜん)なことだ。",1]);
+E.push(["real","真实的","本当(ほんとう)の","Tell me the real reason.","本当(ほんとう)の理由(りゆう)を教(おし)えて。",2]);
+E.push(["true","真的","本当(ほんとう)の","Is this story true?","この話(はなし)は本当(ほんとう)ですか。",3]);
+E.push(["correct","正确的","正(ただ)しい","Choose the correct answer.","正(ただ)しい答(こた)えを選(えら)びなさい。",2]);
+E.push(["wrong","错误的","間違(まちが)った","There is something wrong with it.","それはどこかおかしい。",2]);
+E.push(["full","满的","いっぱいの","The train was full of people.","電車(でんしゃ)は人(ひと)でいっぱいだった。",2]);
+E.push(["empty","空的","からの","The box was empty.","その箱(はこ)はからだった。",2]);
+E.push(["enough","足够的","十分(じゅうぶん)な","We don't have enough time.","十分(じゅうぶん)な時間(じかん)がない。",2]);
+E.push(["own","自己的","自分自身(じぶんじしん)の","I want my own room.","自分(じぶん)の部屋(へや)がほしい。",2]);
+E.push(["whole","整个的","全体(ぜんたい)の","I read the whole book in a day.","私(わたし)は一日(いちにち)で本(ほん)を全部(ぜんぶ)読(よ)んだ。",1]);
+E.push(["main","主要的","主(おも)な","What is the main reason?","主(おも)な理由(りゆう)は何(なん)ですか。",1]);
+E.push(["simple","简单的","簡単(かんたん)な","Use simple English.","簡単(かんたん)な英語(えいご)を使(つか)いなさい。",2]);
+E.push(["hard","困难的；努力的","難(むずか)しい；熱心(ねっしん)な","She works hard every day.","彼女(かのじょ)は毎日(まいにち)熱心(ねっしん)に働(はたら)く。",3]);
+E.push(["nervous","紧张的","緊張(きんちょう)した","I felt nervous before the speech.","スピーチの前(まえ)に緊張(きんちょう)した。",2]);
+E.push(["proud","自豪的","誇(ほこ)りに思(おも)う","I am proud of my school.","私(わたし)は自分(じぶん)の学校(がっこう)を誇(ほこ)りに思(おも)う。",1]);
+E.push(["thankful","感谢的","感謝(かんしゃ)している","I am thankful for your help.","あなたの助(たす)けに感謝(かんしゃ)しています。",1]);
+E.push(["lucky","幸运的","幸運(こううん)な","You are lucky to meet him.","彼(かれ)に会(あ)えるなんて幸運(こううん)だ。",2]);
+E.push(["convenient","方便的","便利(べんり)な","This app is very convenient.","このアプリはとても便利(べんり)だ。",1]);
+E.push(["comfortable","舒适的","快適(かいてき)な","This chair is comfortable.","このいすは快適(かいてき)だ。",1]);
+E.push(["available","可获得的","利用(りよう)できる","Free Wi-Fi is available here.","ここでは無料(むりょう)のWi-Fiが利用(りよう)できる。",1]);
+E.push(["certain","确定的","確(たし)かな","I am certain that he will come.","彼(かれ)が来(く)ることは確(たし)かだ。",1]);
+E.push(["private","私人的","個人(こじん)の","This is a private matter.","これは個人的(こじんてき)なことだ。",1]);
+E.push(["public","公共的","公共(こうきょう)の","We use public transportation.","私(わたし)たちは公共(こうきょう)の交通機関(こうつうきかん)を使(つか)う。",1]);
+E.push(["global","全球的","世界的(せかいてき)な","This is a global problem.","これは世界的(せかいてき)な問題(もんだい)だ。",1]);
+E.push(["equal","平等的","平等(びょうどう)な","Everyone should have equal chances.","誰(だれ)もが平等(びょうどう)な機会(きかい)を持(も)つべきだ。",1]);
+E.push(["nearby","附近的","近(ちか)くの","There is a park nearby.","近(ちか)くに公園(こうえん)がある。",2]);
+E.push(["else","其他的","ほかに","Is there anything else?","ほかに何(なに)かありますか。",2]);
+E.push(["favorite","最喜欢的","お気(き)に入(い)りの","This is my favorite song.","これは私(わたし)のお気(き)に入(い)りの歌(うた)だ。",3]);
+E.push(["surprising","令人惊讶的","驚(おどろ)くべき","The result was surprising.","その結果(けっか)は驚(おどろ)くべきものだった。",2]);
+E.push(["thirsty","口渴的","のどがかわいた","I am thirsty. Give me water.","のどがかわいた。水(みず)をください。",3]);
+E.push(["sleepy","困的","眠(ねむ)い","I felt sleepy in class.","授業中(じゅぎょうちゅう)に眠(ねむ)くなった。",3]);
+_c="副詞・つなぎ語";
+E.push(["always","总是","いつも","She is always kind to us.","彼女(かのじょ)はいつも私(わたし)たちに親切(しんせつ)だ。",3]);
+E.push(["usually","通常","たいてい","I usually get up at six.","私(わたし)はたいてい六時(ろくじ)に起(お)きる。",3]);
+E.push(["often","经常","よく","He often goes to the library.","彼(かれ)はよく図書館(としょかん)へ行(い)く。",3]);
+E.push(["sometimes","有时","ときどき","I sometimes cook dinner.","私(わたし)はときどき夕食(ゆうしょく)を作(つく)る。",3]);
+E.push(["never","从不","一度(いちど)も〜ない","I have never been to America.","私(わたし)は一度(いちど)もアメリカへ行(い)ったことがない。",3]);
+E.push(["already","已经","すでに","She has already finished it.","彼女(かのじょ)はすでにそれを終(お)えた。",2]);
+E.push(["yet","还〔未〕","まだ","I haven't finished it yet.","私(わたし)はまだそれを終(お)えていない。",2]);
+E.push(["still","仍然","まだ","He is still waiting outside.","彼(かれ)はまだ外(そと)で待(ま)っている。",2]);
+E.push(["just","刚刚；只是","ちょうど；ただ","I have just arrived.","私(わたし)はちょうど着(つ)いたところだ。",2]);
+E.push(["soon","很快","まもなく","She will come back soon.","彼女(かのじょ)はまもなく戻(もど)ってくる。",3]);
+E.push(["later","以后","あとで","I'll call you later.","あとで電話(でんわ)します。",2]);
+E.push(["ago","以前","〜前(まえ)に","I met him three years ago.","私(わたし)は三年前(さんねんまえ)に彼(かれ)に会(あ)った。",3]);
+E.push(["once","一次；曾经","一度(いちど)；かつて","I have been there once.","私(わたし)はそこへ一度(いちど)行(い)ったことがある。",2]);
+E.push(["twice","两次","二度(にど)","I read this book twice.","私(わたし)はこの本(ほん)を二度(にど)読(よ)んだ。",2]);
+E.push(["together","一起","一緒(いっしょ)に","Let's study together.","一緒(いっしょ)に勉強(べんきょう)しよう。",3]);
+E.push(["alone","独自","一人(ひとり)で","She lives alone in Tokyo.","彼女(かのじょ)は東京(とうきょう)で一人(ひとり)で暮(く)らしている。",2]);
+E.push(["abroad","在国外","海外(かいがい)で","He wants to study abroad.","彼(かれ)は海外(かいがい)で学(まな)びたい。",2]);
+E.push(["almost","几乎","ほとんど","I almost missed the train.","私(わたし)はもう少(すこ)しで電車(でんしゃ)に乗(の)り遅(おく)れるところだった。",2]);
+E.push(["around","大约；周围","およそ；周(まわ)りに","There are around thirty students.","およそ三十人(さんじゅうにん)の生徒(せいと)がいる。",2]);
+E.push(["only","只","〜だけ","I have only one question.","質問(しつもん)は一(ひと)つだけです。",3]);
+E.push(["even","甚至","〜さえ","Even a child can do it.","子(こ)どもでさえそれができる。",2]);
+E.push(["especially","特别地","特(とく)に","I like sports, especially soccer.","スポーツ、特(とく)にサッカーが好(す)きだ。",1]);
+E.push(["finally","最后","ついに","Finally, we reached the top.","ついに私(わたし)たちは頂上(ちょうじょう)に着(つ)いた。",2]);
+E.push(["suddenly","突然","突然(とつぜん)","Suddenly it began to rain.","突然(とつぜん)雨(あめ)が降(ふ)り始(はじ)めた。",2]);
+E.push(["quickly","迅速地","すばやく","He answered quickly.","彼(かれ)はすばやく答(こた)えた。",2]);
+E.push(["slowly","慢慢地","ゆっくり","Please speak more slowly.","もっとゆっくり話(はな)してください。",3]);
+E.push(["carefully","仔细地","注意深(ちゅういぶか)く","Read the question carefully.","問題(もんだい)を注意深(ちゅういぶか)く読(よ)みなさい。",2]);
+E.push(["easily","容易地","簡単(かんたん)に","You can find it easily.","簡単(かんたん)に見(み)つけられます。",2]);
+E.push(["clearly","清楚地","はっきりと","Please write your name clearly.","名前(なまえ)をはっきり書(か)いてください。",2]);
+E.push(["really","真的","本当(ほんとう)に","I really want to go there.","本当(ほんとう)にそこへ行(い)きたい。",3]);
+E.push(["quite","相当","かなり","The test was quite difficult.","その試験(しけん)はかなり難(むずか)しかった。",2]);
+E.push(["also","也","〜も","She can also speak French.","彼女(かのじょ)はフランス語(ご)も話(はな)せる。",3]);
+E.push(["either","也〔否定〕","〜もまた〜ない","I don't like it either.","私(わたし)もそれが好(す)きではない。",1]);
+E.push(["both","两者都","両方(りょうほう)とも","Both of them are my friends.","二人(ふたり)とも私(わたし)の友(とも)だちだ。",2]);
+E.push(["each","每个","それぞれの","Each student has a tablet.","生徒(せいと)一人一人(ひとりひとり)がタブレットを持(も)っている。",2]);
+E.push(["every","每","毎(まい)〜","She practices every day.","彼女(かのじょ)は毎日(まいにち)練習(れんしゅう)する。",3]);
+E.push(["another","另一个","もう一(ひと)つの","May I have another cup?","もう一杯(いっぱい)いただけますか。",2]);
+E.push(["other","其他的","ほかの","Do you have any other ideas?","ほかに何(なに)か考(かんが)えはありますか。",2]);
+E.push(["such","这样的","そのような","I have never seen such a thing.","そのようなものは見(み)たことがない。",1]);
+E.push(["most","最；大多数","最(もっと)も；ほとんどの","Most students agreed with him.","ほとんどの生徒(せいと)が彼(かれ)に賛成(さんせい)した。",2]);
+E.push(["least","最少","最(もっと)も少(すく)ない","At least ten people came.","少(すく)なくとも十人(じゅうにん)が来(き)た。",1]);
+E.push(["first","首先","まず；最初(さいしょ)に","First, let me explain the rule.","まず規則(きそく)を説明(せつめい)させてください。",3]);
+E.push(["next","下一个","次(つぎ)に","Next, write your name here.","次(つぎ)に、ここに名前(なまえ)を書(か)きなさい。",3]);
+E.push(["then","然后","それから","Then he left the room.","それから彼(かれ)は部屋(へや)を出(で)た。",3]);
+E.push(["however","然而","しかしながら","However, the result was different.","しかしながら、結果(けっか)は違(ちが)っていた。",1]);
+E.push(["though","虽然","〜だけれども","Though it was raining, we went out.","雨(あめ)だったけれども、私(わたし)たちは出(で)かけた。",1]);
+E.push(["although","虽然","〜だけれども","Although he is young, he is wise.","彼(かれ)は若(わか)いけれども賢(かしこ)い。",1]);
+E.push(["because","因为","なぜなら","I was late because I missed the bus.","バスに乗(の)り遅(おく)れたので遅(おく)れました。",3]);
+E.push(["since","自从；因为","〜以来(いらい)；〜なので","I have lived here since 2020.","私(わたし)は二千二十年(にせんにじゅうねん)からここに住(す)んでいる。",2]);
+E.push(["while","当…时","〜する間(あいだ)に","He came while I was cooking.","私(わたし)が料理(りょうり)している間(あいだ)に彼(かれ)が来(き)た。",2]);
+E.push(["until","直到","〜まで","Wait here until I come back.","私(わたし)が戻(もど)るまでここで待(ま)っていて。",2]);
+E.push(["unless","除非","〜しない限(かぎ)り","You will fail unless you study.","勉強(べんきょう)しない限(かぎ)り失敗(しっぱい)するだろう。",1]);
+E.push(["than","比","〜よりも","He is taller than I am.","彼(かれ)は私(わたし)より背(せ)が高(たか)い。",3]);
+E.push(["during","在…期间","〜の間(あいだ)","I read three books during the vacation.","休(やす)みの間(あいだ)に本(ほん)を三冊(さんさつ)読(よ)んだ。",2]);
+E.push(["without","没有","〜なしで","He went out without saying goodbye.","彼(かれ)はさよならも言(い)わずに出(で)ていった。",2]);
+E.push(["among","在…之中","〜の間(あいだ)で","This song is popular among young people.","この歌(うた)は若者(わかもの)の間(あいだ)で人気(にんき)だ。",1]);
+E.push(["between","在…之间","〜の間(あいだ)に","There is a park between the two schools.","二(ふた)つの学校(がっこう)の間(あいだ)に公園(こうえん)がある。",2]);
+E.push(["through","穿过；通过","〜を通(とお)って","We walked through the forest.","私(わたし)たちは森(もり)を通(とお)り抜(ぬ)けた。",2]);
+E.push(["across","横过","〜を横切(よこぎ)って","She ran across the street.","彼女(かのじょ)は通(とお)りを走(はし)って渡(わた)った。",2]);
+E.push(["along","沿着","〜に沿(そ)って","We walked along the river.","私(わたし)たちは川(かわ)に沿(そ)って歩(ある)いた。",2]);
+E.push(["against","反对；对着","〜に反対(はんたい)して","They were against the plan.","彼(かれ)らはその計画(けいかく)に反対(はんたい)だった。",1]);
+E.push(["toward","朝向","〜のほうへ","He walked toward the station.","彼(かれ)は駅(えき)のほうへ歩(ある)いていった。",1]);
+E.push(["instead","代替","その代(か)わりに","I'll go instead of you.","あなたの代(か)わりに私(わたし)が行(い)きます。",1]);
+E.push(["therefore","因此","したがって","Therefore, we changed the plan.","したがって、私(わたし)たちは計画(けいかく)を変(か)えた。",1]);
+E.push(["forever","永远","永遠(えいえん)に","I will remember it forever.","私(わたし)はそれを永遠(えいえん)に覚(おぼ)えているだろう。",1]);
+E.push(["anymore","不再","もう〜ない","He doesn't live here anymore.","彼(かれ)はもうここに住(す)んでいない。",1]);
+E.push(["perhaps","也许","たぶん","Perhaps he is right.","たぶん彼(かれ)が正(ただ)しい。",1]);
+E.push(["probably","很可能","おそらく","She will probably come late.","彼女(かのじょ)はおそらく遅(おく)れて来(く)る。",1]);
+E.push(["certainly","当然","確(たし)かに","Certainly, that is a good point.","確(たし)かに、それはよい指摘(してき)だ。",1]);
+E.push(["actually","实际上","実(じつ)は","Actually, I have never tried it.","実(じつ)は、それを試(ため)したことがない。",1]);
+E.push(["exactly","确切地","正確(せいかく)に","That is exactly what I mean.","それがまさに私(わたし)の言(い)いたいことだ。",1]);
+E.push(["nearly","几乎","ほとんど","It took nearly two hours.","ほぼ二時間(にじかん)かかった。",1]);
+E.push(["far","远","遠(とお)くに","The station is not far from here.","駅(えき)はここから遠(とお)くない。",2]);
+E.push(["ever","曾经","今(いま)までに","Have you ever seen a panda?","今(いま)までにパンダを見(み)たことがありますか。",2]);
+E.push(["anyway","无论如何","とにかく","Anyway, let's start now.","とにかく、今(いま)始(はじ)めよう。",1]);
+E.push(["indeed","确实","実(じつ)に","It was indeed a great show.","それは実(じつ)にすばらしい公演(こうえん)だった。",1]);
+E.push(["hardly","几乎不","ほとんど〜ない","I could hardly hear his voice.","彼(かれ)の声(こえ)がほとんど聞(き)こえなかった。",1]);
+E.push(["mostly","大部分","主(おも)に","The members are mostly students.","会員(かいいん)は主(おも)に学生(がくせい)だ。",1]);
+E.push(["recently","最近","最近(さいきん)","Recently I started running.","最近(さいきん)、私(わたし)は走(はし)り始(はじ)めた。",1]);
+E.push(["someday","总有一天","いつか","Someday I want to live abroad.","いつか海外(かいがい)に住(す)みたい。",2]);
+E.push(["anywhere","任何地方","どこでも","You can sit anywhere.","どこに座(すわ)ってもいいです。",2]);
+E.push(["everywhere","到处","どこでも","People use phones everywhere.","人々(ひとびと)はどこでも携帯(けいたい)を使(つか)う。",2]);
+E.push(["somewhere","某处","どこかで","I have seen him somewhere.","どこかで彼(かれ)を見(み)たことがある。",2]);
+E.push(["outside","在外面","外(そと)で","The children are playing outside.","子(こ)どもたちは外(そと)で遊(あそ)んでいる。",3]);
+E.push(["inside","在里面","中(なか)で","Let's go inside. It's cold.","中(なか)に入(はい)ろう。寒(さむ)いよ。",3]);
+E.push(["upstairs","在楼上","上(うえ)の階(かい)に","My room is upstairs.","私(わたし)の部屋(へや)は上(うえ)の階(かい)にある。",2]);
+E.push(["ahead","在前面","前方(ぜんぽう)に","Go straight ahead.","まっすぐ前(まえ)へ進(すす)みなさい。",2]);
+E.push(["forward","向前","前(まえ)へ","We look forward to seeing you.","お会(あ)いするのを楽(たの)しみにしています。",2]);
+E.push(["back","回；后面","もどって；後(うし)ろへ","He came back at nine.","彼(かれ)は九時(くじ)に戻(もど)ってきた。",3]);
+E.push(["away","离开","離(はな)れて","The park is ten minutes away.","公園(こうえん)は十分(じゅっぷん)離(はな)れている。",2]);
+_c="入試発展";
+E.push(["achieve","达成","達成(たっせい)する","She achieved her goal at last.","彼女(かのじょ)はついに目標(もくひょう)を達成(たっせい)した。",1]);
+E.push(["admire","钦佩","尊敬(そんけい)する","I admire his courage.","私(わたし)は彼(かれ)の勇気(ゆうき)を尊敬(そんけい)する。",1]);
+E.push(["affect","影响","影響(えいきょう)を与(あた)える","The weather affects our mood.","天気(てんき)は気分(きぶん)に影響(えいきょう)を与(あた)える。",1]);
+E.push(["allow","允许","許(ゆる)す","My parents allowed me to go.","両親(りょうしん)は私(わたし)が行(い)くことを許(ゆる)した。",1]);
+E.push(["appear","出现；看起来","現(あらわ)れる","A rainbow appeared in the sky.","空(そら)に虹(にじ)が現(あらわ)れた。",1]);
+E.push(["appreciate","感激","感謝(かんしゃ)する","I appreciate your kindness.","ご親切(しんせつ)に感謝(かんしゃ)します。",1]);
+E.push(["approach","接近","近(ちか)づく","The typhoon is approaching.","台風(たいふう)が近(ちか)づいている。",1]);
+E.push(["argue","争论","議論(ぎろん)する","They argued about the plan.","彼(かれ)らはその計画(けいかく)について議論(ぎろん)した。",1]);
+E.push(["arrange","安排","手配(てはい)する","I arranged a meeting for Friday.","私(わたし)は金曜日(きんようび)に会議(かいぎ)を手配(てはい)した。",1]);
+E.push(["attend","出席","出席(しゅっせき)する","He attended the ceremony.","彼(かれ)はその式(しき)に出席(しゅっせき)した。",1]);
+E.push(["attract","吸引","引(ひ)きつける","The festival attracts many visitors.","その祭(まつ)りは多(おお)くの人(ひと)を引(ひ)きつける。",1]);
+E.push(["avoid","避免","避(さ)ける","Avoid using difficult words.","難(むずか)しい語(ご)を使(つか)うのは避(さ)けなさい。",1]);
+E.push(["aware","意识到的","気(き)づいている","We should be aware of the danger.","私(わたし)たちは危険(きけん)に気(き)づくべきだ。",1]);
+E.push(["behave","行为","ふるまう","He behaved like an adult.","彼(かれ)は大人(おとな)のようにふるまった。",1]);
+E.push(["benefit","益处","利益(りえき)","Exercise has many benefits.","運動(うんどう)には多(おお)くの利点(りてん)がある。",1]);
+E.push(["breathe","呼吸","呼吸(こきゅう)する","It is hard to breathe here.","ここでは呼吸(こきゅう)しにくい。",1]);
+E.push(["celebrate","庆祝","祝(いわ)う","We celebrated her birthday.","私(わたし)たちは彼女(かのじょ)の誕生日(たんじょうび)を祝(いわ)った。",1]);
+E.push(["challenge","挑战","挑戦(ちょうせん)","It was a big challenge for me.","それは私(わたし)にとって大(おお)きな挑戦(ちょうせん)だった。",1]);
+E.push(["complete","完成的","完全(かんぜん)な；完成(かんせい)する","He completed the work in a week.","彼(かれ)は一週間(いっしゅうかん)でその仕事(しごと)を仕上(しあ)げた。",1]);
+E.push(["connect","连接","つなぐ","This road connects the two towns.","この道(みち)は二(ふた)つの町(まち)をつないでいる。",1]);
+E.push(["consider","考虑","よく考(かんが)える","Please consider my idea.","私(わたし)の考(かんが)えをよく検討(けんとう)してください。",1]);
+E.push(["contain","包含","含(ふく)む","This drink contains sugar.","この飲(の)み物(もの)には砂糖(さとう)が含(ふく)まれている。",1]);
+E.push(["contribute","贡献","貢献(こうけん)する","He contributed to the local community.","彼(かれ)は地域(ちいき)に貢献(こうけん)した。",1]);
+E.push(["control","控制","管理(かんり)する","You must control your feelings.","感情(かんじょう)を抑(おさ)えなければならない。",1]);
+E.push(["damage","损害","損害(そんがい)を与(あた)える","The storm damaged many houses.","嵐(あらし)は多(おお)くの家(いえ)に被害(ひがい)を与(あた)えた。",1]);
+E.push(["deliver","递送","届(とど)ける","The mail is delivered every morning.","郵便(ゆうびん)は毎朝(まいあさ)届(とど)けられる。",1]);
+E.push(["depend","依赖","頼(たよ)る","It depends on the weather.","それは天気(てんき)次第(しだい)だ。",1]);
+E.push(["develop","发展","発達(はったつ)させる","This city developed quickly.","この都市(とし)は急速(きゅうそく)に発展(はってん)した。",1]);
+E.push(["disappear","消失","消(き)える","The bird disappeared into the sky.","その鳥(とり)は空(そら)に消(き)えていった。",1]);
+E.push(["discuss","讨论","話(はな)し合(あ)う","We discussed the problem in class.","私(わたし)たちは授業(じゅぎょう)でその問題(もんだい)を話(はな)し合(あ)った。",1]);
+E.push(["divide","分开","分(わ)ける","Divide the class into four groups.","クラスを四(よっ)つの班(はん)に分(わ)けなさい。",1]);
+E.push(["education","教育","教育(きょういく)","Education changes people's lives.","教育(きょういく)は人(ひと)の人生(じんせい)を変(か)える。",1]);
+E.push(["encourage","鼓励","励(はげ)ます","His words encouraged me a lot.","彼(かれ)の言葉(ことば)は私(わたし)をとても励(はげ)ました。",1]);
+E.push(["escape","逃跑","逃(に)げる","They escaped from the fire.","彼(かれ)らは火事(かじ)から逃(に)げた。",1]);
+E.push(["examine","检查","調(しら)べる","The doctor examined my throat.","医者(いしゃ)は私(わたし)ののどを調(しら)べた。",1]);
+E.push(["exist","存在","存在(そんざい)する","Such a place really exists.","そのような場所(ばしょ)は本当(ほんとう)に存在(そんざい)する。",1]);
+E.push(["experiment","实验","実験(じっけん)","We did an experiment in science class.","理科(りか)の授業(じゅぎょう)で実験(じっけん)をした。",1]);
+E.push(["focus","集中","集中(しゅうちゅう)する","Focus on your goal.","目標(もくひょう)に集中(しゅうちゅう)しなさい。",1]);
+E.push(["gather","聚集","集(あつ)まる","Many people gathered in the square.","多(おお)くの人(ひと)が広場(ひろば)に集(あつ)まった。",1]);
+E.push(["generation","一代","世代(せだい)","The young generation uses SNS.","若(わか)い世代(せだい)はSNSを使(つか)う。",1]);
+E.push(["ignore","忽视","無視(むし)する","Don't ignore small signs.","小(ちい)さな兆(きざ)しを無視(むし)してはいけない。",1]);
+E.push(["impress","使印象深刻","感銘(かんめい)を与(あた)える","Her speech impressed everyone.","彼女(かのじょ)のスピーチはみんなに感銘(かんめい)を与(あた)えた。",1]);
+E.push(["influence","影响","影響(えいきょう)","Music has a big influence on us.","音楽(おんがく)は私(わたし)たちに大(おお)きな影響(えいきょう)を与(あた)える。",1]);
+E.push(["injure","使受伤","けがをさせる","He was injured in the accident.","彼(かれ)はその事故(じこ)でけがをした。",1]);
+E.push(["judge","判断","判断(はんだん)する","Don't judge people by their looks.","見(み)た目(め)で人(ひと)を判断(はんだん)してはいけない。",1]);
+E.push(["maintain","维持","維持(いじ)する","We must maintain good health.","健康(けんこう)を維持(いじ)しなければならない。",1]);
+E.push(["manage","设法；管理","何(なん)とかやり遂(と)げる","She managed to solve it alone.","彼女(かのじょ)は一人(ひとり)で何(なん)とか解決(かいけつ)した。",1]);
+E.push(["measure","测量","測(はか)る","Measure the length of the desk.","机(つくえ)の長(なが)さを測(はか)りなさい。",1]);
+E.push(["mention","提到","述(の)べる","He mentioned the plan briefly.","彼(かれ)はその計画(けいかく)に少(すこ)し触(ふ)れた。",1]);
+E.push(["method","方法","方法(ほうほう)","This is a useful study method.","これは役立(やくだ)つ勉強法(べんきょうほう)だ。",1]);
+E.push(["occur","发生","起(お)こる","The accident occurred at night.","その事故(じこ)は夜(よる)に起(お)こった。",1]);
+E.push(["opportunity","机会","機会(きかい)","This is a great opportunity.","これはすばらしい機会(きかい)だ。",1]);
+E.push(["organize","组织","まとめる；企画(きかく)する","They organized a charity event.","彼(かれ)らは慈善(じぜん)行事(ぎょうじ)を企画(きかく)した。",1]);
+E.push(["participate","参加","参加(さんか)する","Many students participated in it.","多(おお)くの生徒(せいと)がそれに参加(さんか)した。",1]);
+E.push(["persuade","说服","説得(せっとく)する","I persuaded him to come.","私(わたし)は彼(かれ)を説得(せっとく)して来(こ)させた。",1]);
+E.push(["prefer","更喜欢","〜のほうを好(この)む","I prefer tea to coffee.","私(わたし)はコーヒーより紅茶(こうちゃ)が好(す)きだ。",1]);
+E.push(["prevent","防止","防(ふせ)ぐ","We can prevent the disease.","私(わたし)たちはその病気(びょうき)を防(ふせ)ぐことができる。",1]);
+E.push(["promise","承诺","約束(やくそく)する","He promised to help me.","彼(かれ)は私(わたし)を助(たす)けると約束(やくそく)した。",2]);
+E.push(["prove","证明","証明(しょうめい)する","He proved that he was right.","彼(かれ)は自分(じぶん)が正(ただ)しいと証明(しょうめい)した。",1]);
+E.push(["quality","质量","質(しつ)","The quality of the water is good.","その水(みず)の質(しつ)はよい。",1]);
+E.push(["recognize","认出","見分(みわ)ける","I recognized her at once.","私(わたし)はすぐに彼女(かのじょ)だとわかった。",1]);
+E.push(["recover","恢复","回復(かいふく)する","He recovered from his illness.","彼(かれ)は病気(びょうき)から回復(かいふく)した。",1]);
+E.push(["reflect","反映；反思","反映(はんえい)する","The lake reflected the mountain.","湖(みずうみ)は山(やま)を映(うつ)していた。",1]);
+E.push(["refuse","拒绝","断(ことわ)る","She refused his offer.","彼女(かのじょ)は彼(かれ)の申(もう)し出(で)を断(ことわ)った。",1]);
+E.push(["regret","后悔","後悔(こうかい)する","I regret not studying harder.","もっと勉強(べんきょう)しなかったことを後悔(こうかい)している。",1]);
+E.push(["relax","放松","くつろぐ","I relax by listening to music.","私(わたし)は音楽(おんがく)を聞(き)いてくつろぐ。",2]);
+E.push(["remain","保持；剩下","〜のままである","Please remain seated.","座(すわ)ったままでいてください。",1]);
+E.push(["remove","移除","取(と)り除(のぞ)く","Remove your shoes here.","ここで靴(くつ)を脱(ぬ)いでください。",1]);
+E.push(["repair","修理","修理(しゅうり)する","He repaired the broken chair.","彼(かれ)は壊(こわ)れたいすを修理(しゅうり)した。",1]);
+E.push(["replace","替换","取(と)り替(か)える","We replaced the old computer.","私(わたし)たちは古(ふる)いパソコンを買(か)い替(か)えた。",1]);
+E.push(["require","需要","必要(ひつよう)とする","This job requires patience.","この仕事(しごと)は忍耐(にんたい)を必要(ひつよう)とする。",1]);
+E.push(["rescue","救援","救助(きゅうじょ)する","They rescued the child from the river.","彼(かれ)らは川(かわ)から子(こ)どもを救助(きゅうじょ)した。",1]);
+E.push(["respond","回应","答(こた)える","She responded to my e-mail soon.","彼女(かのじょ)はすぐに私(わたし)のメールに答(こた)えた。",1]);
+E.push(["satisfy","使满意","満足(まんぞく)させる","The result satisfied everyone.","その結果(けっか)はみんなを満足(まんぞく)させた。",1]);
+E.push(["seek","寻找","探(さが)し求(もと)める","They are seeking a solution.","彼(かれ)らは解決策(かいけつさく)を探(さが)している。",1]);
+E.push(["select","选择","選(えら)び出(だ)す","Select the best answer.","最(もっと)もよい答(こた)えを選(えら)びなさい。",1]);
+E.push(["separate","分开的","別々(べつべつ)の","They live in separate rooms.","彼(かれ)らは別々(べつべつ)の部屋(へや)に住(す)んでいる。",1]);
+E.push(["serve","服务；供应","仕(つか)える；出(だ)す","This restaurant serves breakfast.","このレストランは朝食(ちょうしょく)を出(だ)している。",1]);
+E.push(["succeed","成功","成功(せいこう)する","He succeeded in the experiment.","彼(かれ)はその実験(じっけん)に成功(せいこう)した。",1]);
+E.push(["suffer","遭受","苦(くる)しむ","Many people suffer from hunger.","多(おお)くの人(ひと)が飢(う)えに苦(くる)しんでいる。",1]);
+E.push(["supply","供应","供給(きょうきゅう)する","They supplied water to the village.","彼(かれ)らはその村(むら)に水(みず)を供給(きょうきゅう)した。",1]);
+E.push(["surround","包围","囲(かこ)む","The lake is surrounded by mountains.","その湖(みずうみ)は山(やま)に囲(かこ)まれている。",1]);
+E.push(["survive","幸存","生(い)き延(の)びる","The plant survived the cold winter.","その植物(しょくぶつ)は寒(さむ)い冬(ふゆ)を生(い)き延(の)びた。",1]);
+E.push(["translate","翻译","翻訳(ほんやく)する","Translate this sentence into Japanese.","この文(ぶん)を日本語(にほんご)に訳(やく)しなさい。",1]);
+E.push(["treat","对待","扱(あつか)う","Treat others with respect.","他人(たにん)を敬意(けいい)をもって扱(あつか)いなさい。",1]);
+E.push(["trust","信任","信頼(しんらい)する","I trust my friends.","私(わたし)は友(とも)だちを信頼(しんらい)している。",1]);
+E.push(["value","价值","価値(かち)","We learned the value of time.","私(わたし)たちは時間(じかん)の価値(かち)を学(まな)んだ。",1]);
+E.push(["wealth","财富","富(とみ)","Health is better than wealth.","健康(けんこう)は富(とみ)にまさる。",1]);
+E.push(["willing","愿意的","喜(よろこ)んで〜する","I am willing to help you.","喜(よろこ)んでお手伝(てつだ)いします。",1]);
+E.push(["ancient","古代的","古代(こだい)の","We studied ancient history.","私(わたし)たちは古代(こだい)の歴史(れきし)を学(まな)んだ。",1]);
+E.push(["specific","具体的","具体的(ぐたいてき)な","Give me a specific example.","具体的(ぐたいてき)な例(れい)を挙(あ)げてください。",1]);
+E.push(["obvious","明显的","明(あき)らかな","The answer is obvious.","答(こた)えは明(あき)らかだ。",1]);
+E.push(["sudden","突然的","突然(とつぜん)の","It was a sudden change.","それは突然(とつぜん)の変化(へんか)だった。",1]);
+E.push(["silent","沉默的","静(しず)かな","The room became silent.","部屋(へや)は静(しず)かになった。",1]);
+E.push(["patient","有耐心的；病人","忍耐強(にんたいづよ)い；患者(かんじゃ)","Be patient with young children.","小(ちい)さな子(こ)どもには忍耐強(にんたいづよ)くしなさい。",1]);
+E.push(["curious","好奇的","知(し)りたがる","Children are curious about everything.","子(こ)どもは何(なに)にでも好奇心(こうきしん)を持(も)つ。",1]);
+E.push(["confident","自信的","自信(じしん)がある","She is confident about the test.","彼女(かのじょ)はその試験(しけん)に自信(じしん)がある。",1]);
+E.push(["independent","独立的","自立(じりつ)した","He became independent at eighteen.","彼(かれ)は十八歳(じゅうはっさい)で自立(じりつ)した。",1]);
+E.push(["responsible","负责的","責任(せきにん)がある","You are responsible for your words.","自分(じぶん)の言葉(ことば)に責任(せきにん)がある。",1]);
+E.push(["environmental","环境的","環境(かんきょう)の","We discussed environmental problems.","私(わたし)たちは環境問題(かんきょうもんだい)を話(はな)し合(あ)った。",1]);
+E.push(["international","国际的","国際的(こくさいてき)な","She works for an international group.","彼女(かのじょ)は国際的(こくさいてき)な団体(だんたい)で働(はたら)いている。",1]);
+E.push(["individual","个人的","個人(こじん)の","Respect individual differences.","個人(こじん)の違(ちが)いを尊重(そんちょう)しなさい。",1]);
+E.push(["mental","精神的","精神的(せいしんてき)な","Mental health is important, too.","心(こころ)の健康(けんこう)も大切(たいせつ)だ。",1]);
+E.push(["physical","身体的","身体的(しんたいてき)な","Physical exercise is good for you.","体(からだ)を動(うご)かすことは体(からだ)によい。",1]);
+E.push(["positive","积极的","前向(まえむ)きな","Keep a positive attitude.","前向(まえむ)きな態度(たいど)を保(たも)ちなさい。",1]);
+E.push(["negative","消极的","否定的(ひていてき)な","Don't be so negative.","そんなに否定的(ひていてき)にならないで。",1]);
+E.push(["professional","专业的","専門的(せんもんてき)な","He is a professional player.","彼(かれ)はプロの選手(せんしゅ)だ。",1]);
+_c="熟語・連語";
+P.push(["be able to ~","能够…","〜することができる","She is able to swim very fast.","彼女(かのじょ)はとても速(はや)く泳(およ)ぐことができる。",2]);
+P.push(["be afraid of ~","害怕…","〜を恐(おそ)れる","I am afraid of big dogs.","私(わたし)は大(おお)きな犬(いぬ)が怖(こわ)い。",2]);
+P.push(["be different from ~","与…不同","〜と違(ちが)う","His idea is different from mine.","彼(かれ)の考(かんが)えは私(わたし)のとは違(ちが)う。",2]);
+P.push(["be famous for ~","以…闻名","〜で有名(ゆうめい)である","This town is famous for its temples.","この町(まち)は寺(てら)で有名(ゆうめい)だ。",2]);
+P.push(["be full of ~","充满…","〜でいっぱいである","The box was full of old books.","その箱(はこ)は古(ふる)い本(ほん)でいっぱいだった。",2]);
+P.push(["be good at ~","擅长…","〜が得意(とくい)である","He is good at playing the guitar.","彼(かれ)はギターを弾(ひ)くのが得意(とくい)だ。",3]);
+P.push(["be interested in ~","对…感兴趣","〜に興味(きょうみ)がある","I am interested in foreign cultures.","私(わたし)は外国(がいこく)の文化(ぶんか)に興味(きょうみ)がある。",2]);
+P.push(["be kind to ~","对…友善","〜に親切(しんせつ)である","She is always kind to everyone.","彼女(かのじょ)はいつもみんなに親切(しんせつ)だ。",3]);
+P.push(["be known as ~","作为…而闻名","〜として知(し)られている","He is known as a great artist.","彼(かれ)は偉大(いだい)な芸術家(げいじゅつか)として知(し)られている。",1]);
+P.push(["be late for ~","…迟到","〜に遅(おく)れる","Don't be late for school.","学校(がっこう)に遅(おく)れてはいけない。",3]);
+P.push(["be made of ~","由…制成","〜でできている","This desk is made of wood.","この机(つくえ)は木(き)でできている。",2]);
+P.push(["be made from ~","由…制成〔变质〕","〜から作(つく)られる","Cheese is made from milk.","チーズは牛乳(ぎゅうにゅう)から作(つく)られる。",2]);
+P.push(["be proud of ~","为…自豪","〜を誇(ほこ)りに思(おも)う","I am proud of my hometown.","私(わたし)は故郷(こきょう)を誇(ほこ)りに思(おも)う。",1]);
+P.push(["be surprised at ~","对…惊讶","〜に驚(おどろ)く","We were surprised at the news.","私(わたし)たちはその知(し)らせに驚(おどろ)いた。",2]);
+P.push(["be worried about ~","担心…","〜を心配(しんぱい)している","She is worried about the exam.","彼女(かのじょ)は試験(しけん)を心配(しんぱい)している。",2]);
+P.push(["be covered with ~","被…覆盖","〜で覆(おお)われている","The mountain was covered with snow.","その山(やま)は雪(ゆき)で覆(おお)われていた。",1]);
+P.push(["be born in ~","出生于…","〜で生(う)まれる","He was born in Osaka.","彼(かれ)は大阪(おおさか)で生(う)まれた。",3]);
+P.push(["be filled with ~","充满…","〜で満(み)たされている","Her eyes were filled with tears.","彼女(かのじょ)の目(め)は涙(なみだ)でいっぱいだった。",1]);
+P.push(["be based on ~","基于…","〜に基(もと)づいている","This story is based on a real event.","この話(はなし)は実話(じつわ)に基(もと)づいている。",1]);
+P.push(["be similar to ~","与…相似","〜に似(に)ている","This word is similar to that one.","この語(ご)はあの語(ご)に似(に)ている。",1]);
+P.push(["look at ~","看…","〜を見(み)る","Look at the picture on the wall.","壁(かべ)の絵(え)を見(み)なさい。",3]);
+P.push(["look for ~","寻找…","〜を探(さが)す","I am looking for my key.","私(わたし)はかぎを探(さが)している。",3]);
+P.push(["look forward to ~","期待…","〜を楽(たの)しみに待(ま)つ","I am looking forward to seeing you.","お会(あ)いするのを楽(たの)しみにしています。",1]);
+P.push(["look like ~","看起来像…","〜のように見(み)える","She looks like her mother.","彼女(かのじょ)は母親(ははおや)に似(に)ている。",2]);
+P.push(["look up ~","查〔词〕","〔辞書(じしょ)などで〕調(しら)べる","Look up the word in the dictionary.","その語(ご)を辞書(じしょ)で調(しら)べなさい。",2]);
+P.push(["take care of ~","照顾…","〜の世話(せわ)をする","I take care of my little brother.","私(わたし)は弟(おとうと)の世話(せわ)をする。",2]);
+P.push(["take part in ~","参加…","〜に参加(さんか)する","Many students took part in the event.","多(おお)くの生徒(せいと)がその行事(ぎょうじ)に参加(さんか)した。",1]);
+P.push(["take place","举行；发生","行(おこな)われる","The festival takes place in August.","その祭(まつ)りは八月(はちがつ)に行(おこな)われる。",1]);
+P.push(["take off ~","脱下；起飞","脱(ぬ)ぐ；離陸(りりく)する","Please take off your shoes here.","ここで靴(くつ)を脱(ぬ)いでください。",2]);
+P.push(["take a walk","散步","散歩(さんぽ)する","I take a walk every morning.","私(わたし)は毎朝(まいあさ)散歩(さんぽ)をする。",2]);
+P.push(["get up","起床","起(お)きる","I get up at six every day.","私(わたし)は毎日(まいにち)六時(ろくじ)に起(お)きる。",3]);
+P.push(["get off ~","下〔车〕","〜を降(お)りる","Get off the bus at the next stop.","次(つぎ)の停留所(ていりゅうじょ)でバスを降(お)りなさい。",2]);
+P.push(["get on ~","上〔车〕","〜に乗(の)る","She got on the train at Tokyo.","彼女(かのじょ)は東京(とうきょう)で電車(でんしゃ)に乗(の)った。",2]);
+P.push(["get to ~","到达…","〜に着(つ)く","How can I get to the station?","駅(えき)にはどう行(い)けばいいですか。",2]);
+P.push(["get along with ~","与…相处融洽","〜と仲良(なかよ)くやる","He gets along with his classmates.","彼(かれ)は同級生(どうきゅうせい)と仲良(なかよ)くやっている。",1]);
+P.push(["give up","放弃","あきらめる","Don't give up so easily.","そんなに簡単(かんたん)にあきらめないで。",2]);
+P.push(["put on ~","穿上","〜を身(み)につける","Put on your coat. It's cold.","コートを着(き)なさい。寒(さむ)いよ。",2]);
+P.push(["turn on ~","打开〔电器〕","〔電気(でんき)などを〕つける","Turn on the light, please.","電気(でんき)をつけてください。",2]);
+P.push(["turn off ~","关掉","〔電気(でんき)などを〕消(け)す","Turn off the TV before you go.","出(で)かける前(まえ)にテレビを消(け)しなさい。",2]);
+P.push(["come from ~","来自…","〜の出身(しゅっしん)である","She comes from Canada.","彼女(かのじょ)はカナダの出身(しゅっしん)だ。",3]);
+P.push(["come true","实现","実現(じつげん)する","My dream came true at last.","私(わたし)の夢(ゆめ)はついに実現(じつげん)した。",2]);
+P.push(["go on","继续","続(つづ)く","The meeting went on for two hours.","会議(かいぎ)は二時間(にじかん)続(つづ)いた。",2]);
+P.push(["grow up","长大","成長(せいちょう)する","I grew up in a small town.","私(わたし)は小(ちい)さな町(まち)で育(そだ)った。",2]);
+P.push(["wake up","醒来","目(め)を覚(さ)ます","I woke up early this morning.","今朝(けさ)は早(はや)く目(め)が覚(さ)めた。",2]);
+P.push(["find out ~","查明","〜を見(み)つけ出(だ)す","I found out the truth later.","私(わたし)はあとで真実(しんじつ)を知(し)った。",1]);
+P.push(["hurry up","快点","急(いそ)ぐ","Hurry up! We're late.","急(いそ)いで。遅(おく)れるよ。",2]);
+P.push(["cheer up","打起精神","元気(げんき)づける","Her words cheered me up.","彼女(かのじょ)の言葉(ことば)は私(わたし)を元気(げんき)づけた。",1]);
+P.push(["pick up ~","捡起；接〔人〕","拾(ひろ)う；迎(むか)えに行(い)く","He picked up the trash on the road.","彼(かれ)は道(みち)のごみを拾(ひろ)った。",1]);
+P.push(["hand in ~","提交","〜を提出(ていしゅつ)する","Hand in your report by Friday.","金曜日(きんようび)までにレポートを提出(ていしゅつ)しなさい。",1]);
+P.push(["carry out ~","执行","〜を実行(じっこう)する","They carried out the plan.","彼(かれ)らはその計画(けいかく)を実行(じっこう)した。",1]);
+P.push(["agree with ~","同意…","〜に賛成(さんせい)する","I agree with your opinion.","私(わたし)はあなたの意見(いけん)に賛成(さんせい)だ。",2]);
+P.push(["arrive at ~","到达…","〜に到着(とうちゃく)する","We arrived at the hotel at noon.","私(わたし)たちは正午(しょうご)にホテルに到着(とうちゃく)した。",2]);
+P.push(["ask for ~","请求…","〜を求(もと)める","He asked for help.","彼(かれ)は助(たす)けを求(もと)めた。",2]);
+P.push(["belong to ~","属于…","〜に所属(しょぞく)する","I belong to the science club.","私(わたし)は科学部(かがくぶ)に所属(しょぞく)している。",2]);
+P.push(["depend on ~","依靠…","〜次第(しだい)である","It depends on the weather.","それは天気(てんき)次第(しだい)だ。",1]);
+P.push(["hear from ~","收到…的消息","〜から便(たよ)りがある","I heard from her last week.","先週(せんしゅう)彼女(かのじょ)から連絡(れんらく)があった。",1]);
+P.push(["laugh at ~","嘲笑…","〜を笑(わら)う","Don't laugh at other people's mistakes.","人(ひと)の失敗(しっぱい)を笑(わら)ってはいけない。",1]);
+P.push(["listen to ~","听…","〜を聞(き)く","Listen to the CD carefully.","CDを注意深(ちゅういぶか)く聞(き)きなさい。",3]);
+P.push(["pay attention to ~","注意…","〜に注意(ちゅうい)を払(はら)う","Pay attention to the signs.","標識(ひょうしき)に注意(ちゅうい)しなさい。",1]);
+P.push(["prepare for ~","为…做准备","〜の準備(じゅんび)をする","I am preparing for the exam.","私(わたし)は試験(しけん)の準備(じゅんび)をしている。",2]);
+P.push(["think of ~","想到…","〜を思(おも)いつく","I can't think of a good idea.","よい考(かんが)えが思(おも)いつかない。",2]);
+P.push(["wait for ~","等待…","〜を待(ま)つ","I waited for the bus for an hour.","私(わたし)は一時間(いちじかん)バスを待(ま)った。",3]);
+P.push(["worry about ~","担心…","〜を心配(しんぱい)する","Don't worry about small things.","小(ちい)さなことを心配(しんぱい)しないで。",2]);
+P.push(["at first","起初","最初(さいしょ)は","At first I didn't like it.","最初(さいしょ)はそれが好(す)きではなかった。",2]);
+P.push(["at last","最终","ついに","At last we finished the work.","ついに私(わたし)たちは仕事(しごと)を終(お)えた。",2]);
+P.push(["at once","立刻","すぐに","Come here at once.","すぐにここへ来(き)なさい。",1]);
+P.push(["at least","至少","少(すく)なくとも","Sleep at least seven hours.","少(すく)なくとも七時間(ななじかん)は寝(ね)なさい。",1]);
+P.push(["at the same time","同时","同時(どうじ)に","They arrived at the same time.","彼(かれ)らは同時(どうじ)に到着(とうちゃく)した。",2]);
+P.push(["for a long time","很长时间","長(なが)い間(あいだ)","I have known him for a long time.","私(わたし)は長(なが)い間(あいだ)彼(かれ)を知(し)っている。",2]);
+P.push(["for example","例如","たとえば","For example, plastic harms the sea.","たとえば、プラスチックは海(うみ)を害(がい)する。",2]);
+P.push(["for the first time","第一次","初(はじ)めて","I saw snow for the first time.","私(わたし)は初(はじ)めて雪(ゆき)を見(み)た。",2]);
+P.push(["in fact","事实上","実際(じっさい)には","In fact, the story is true.","実際(じっさい)、その話(はなし)は本当(ほんとう)だ。",1]);
+P.push(["in front of ~","在…前面","〜の前(まえ)に","He was standing in front of the door.","彼(かれ)はドアの前(まえ)に立(た)っていた。",2]);
+P.push(["in order to ~","为了…","〜するために","She studies hard in order to pass.","彼女(かのじょ)は合格(ごうかく)するために一生懸命(いっしょうけんめい)勉強(べんきょう)する。",1]);
+P.push(["in other words","换句话说","言(い)いかえれば","In other words, we must start now.","言(い)いかえれば、今(いま)始(はじ)めなければならない。",1]);
+P.push(["in the future","将来","将来(しょうらい)","I want to be a teacher in the future.","将来(しょうらい)、先生(せんせい)になりたい。",2]);
+P.push(["on foot","步行","徒歩(とほ)で","I go to school on foot.","私(わたし)は徒歩(とほ)で学校(がっこう)へ行(い)く。",2]);
+P.push(["on time","准时","時間(じかん)どおりに","The train came on time.","電車(でんしゃ)は時間(じかん)どおりに来(き)た。",2]);
+P.push(["by the way","顺便说","ところで","By the way, how is your family?","ところで、ご家族(かぞく)はお元気(げんき)ですか。",2]);
+P.push(["of course","当然","もちろん","Of course, I will help you.","もちろん、お手伝(てつだ)いします。",3]);
+P.push(["all over the world","全世界","世界中(せかいじゅう)で","This song is loved all over the world.","この歌(うた)は世界中(せかいじゅう)で愛(あい)されている。",2]);
+P.push(["a lot of ~","很多…","たくさんの","There are a lot of books here.","ここにはたくさんの本(ほん)がある。",3]);
+P.push(["a few ~","一些…","少(すこ)しの","I have a few questions.","私(わたし)にはいくつか質問(しつもん)がある。",2]);
+P.push(["a little","一点","少(すこ)し","I can speak a little English.","私(わたし)は少(すこ)し英語(えいご)が話(はな)せる。",3]);
+P.push(["each other","互相","お互(たが)いに","They helped each other.","彼(かれ)らはお互(たが)いに助(たす)け合(あ)った。",2]);
+P.push(["as soon as ~","一…就…","〜するとすぐに","Call me as soon as you arrive.","着(つ)いたらすぐに電話(でんわ)してください。",1]);
+P.push(["as well as ~","不仅…而且","〜と同様(どうよう)に","He speaks French as well as English.","彼(かれ)は英語(えいご)だけでなくフランス語(ご)も話(はな)す。",1]);
+P.push(["as ~ as ...","和…一样","…と同(おな)じくらい〜","He is as tall as his father.","彼(かれ)は父親(ちちおや)と同(おな)じくらい背(せ)が高(たか)い。",2]);
+P.push(["not as ~ as ...","不如…","…ほど〜ではない","This book is not as difficult as that one.","この本(ほん)はあの本(ほん)ほど難(むずか)しくない。",2]);
+P.push(["both A and B","A和B都","AもBも両方(りょうほう)とも","Both my sister and I like music.","姉(あね)も私(わたし)も音楽(おんがく)が好(す)きだ。",2]);
+P.push(["either A or B","A或B","AかBのどちらか","You can choose either tea or coffee.","紅茶(こうちゃ)かコーヒーのどちらかを選(えら)べます。",1]);
+P.push(["not only A but also B","不仅A而且B","AだけでなくBも","He is not only kind but also honest.","彼(かれ)は親切(しんせつ)なだけでなく正直(しょうじき)でもある。",1]);
+P.push(["so ~ that ...","如此…以至于","とても〜なので…","He was so tired that he fell asleep.","彼(かれ)はとても疲(つか)れていたので眠(ねむ)ってしまった。",1]);
+P.push(["too ~ to ...","太…而不能","…するには〜すぎる","This box is too heavy to carry.","この箱(はこ)は重(おも)すぎて運(はこ)べない。",1]);
+P.push(["~ enough to ...","足够…能","…するのに十分(じゅうぶん)〜","She is old enough to drive.","彼女(かのじょ)は運転(うんてん)できる年齢(ねんれい)だ。",1]);
+P.push(["It is ~ for A to ...","对A来说…是…","Aが…するのは〜だ","It is difficult for me to get up early.","早起(はやお)きするのは私(わたし)には難(むずか)しい。",1]);
+P.push(["It takes ~ to ...","做…花费…","…するのに〜かかる","It takes ten minutes to walk there.","そこまで歩(ある)いて十分(じゅっぷん)かかる。",2]);
+P.push(["There is / There are ~","有…","〜がある","There is a library near my house.","家(いえ)の近(ちか)くに図書館(としょかん)がある。",3]);
+P.push(["used to ~","过去常常","以前(いぜん)はよく〜した","I used to play the piano.","私(わたし)は以前(いぜん)よくピアノを弾(ひ)いた。",1]);
+P.push(["would like to ~","想要…","〜したい","I would like to visit Kyoto.","私(わたし)は京都(きょうと)を訪(おとず)れたい。",2]);
+P.push(["had better ~","最好…","〜したほうがよい","You had better see a doctor.","医者(いしゃ)に診(み)てもらったほうがよい。",1]);
+P.push(["have to ~","必须…","〜しなければならない","I have to finish this today.","私(わたし)は今日中(きょうじゅう)にこれを終(お)えなければならない。",3]);
+P.push(["don't have to ~","不必…","〜する必要(ひつよう)はない","You don't have to come early.","早(はや)く来(く)る必要(ひつよう)はありません。",2]);
+P.push(["must not ~","不可以…","〜してはいけない","You must not touch it.","それに触(さわ)ってはいけない。",2]);
+P.push(["How about ~ing?","…怎么样？","〜するのはどうですか","How about going to the movies?","映画(えいが)を見(み)に行(い)くのはどうですか。",2]);
+P.push(["Why don't you ~?","你何不…？","〜したらどうですか","Why don't you ask your teacher?","先生(せんせい)に聞(き)いてみたらどうですか。",2]);
+P.push(["Shall I ~?","要我…吗？","〜しましょうか","Shall I open the window?","窓(まど)を開(あ)けましょうか。",2]);
+P.push(["Would you like ~?","您要…吗？","〜はいかがですか","Would you like some tea?","お茶(ちゃ)はいかがですか。",2]);
+P.push(["Could you ~?","能请您…吗？","〜していただけますか","Could you say that again?","もう一度(いちど)言(い)っていただけますか。",2]);
+P.push(["May I ~?","我可以…吗？","〜してもいいですか","May I use your pen?","ペンを使(つか)ってもいいですか。",3]);
+P.push(["What do you think of ~?","你觉得…怎么样？","〜をどう思(おも)いますか","What do you think of this plan?","この計画(けいかく)をどう思(おも)いますか。",2]);
+P.push(["one of the ~est","最…之一","最(もっと)も〜なものの一(ひと)つ","This is one of the oldest temples.","これは最(もっと)も古(ふる)い寺(てら)の一(ひと)つだ。",1]);
+P.push(["the more ~, the more ...","越…越…","〜すればするほど…","The more you practice, the better you get.","練習(れんしゅう)すればするほど上手(じょうず)になる。",1]);
+P.push(["more and more ~","越来越…","ますます〜","More and more people use bikes.","ますます多(おお)くの人(ひと)が自転車(じてんしゃ)を使(つか)う。",1]);
+P.push(["according to ~","根据…","〜によれば","According to the news, it will rain.","ニュースによれば、雨(あめ)が降(ふ)るそうだ。",1]);
+P.push(["thanks to ~","多亏…","〜のおかげで","Thanks to your help, I finished it.","あなたの助(たす)けのおかげで終(お)えられた。",1]);
+P.push(["because of ~","因为…","〜のために","The game was canceled because of rain.","雨(あめ)のため試合(しあい)は中止(ちゅうし)になった。",2]);
+P.push(["instead of ~","代替…","〜の代(か)わりに","I drank tea instead of coffee.","コーヒーの代(か)わりに紅茶(こうちゃ)を飲(の)んだ。",1]);
+P.push(["such as ~","例如…","〜のような","I like fruit such as apples.","私(わたし)はりんごのような果物(くだもの)が好(す)きだ。",1]);
+P.push(["more than ~","超过…","〜より多(おお)く","More than fifty people came.","五十人(ごじゅうにん)以上(いじょう)が来(き)た。",2]);
+P.push(["most of ~","大部分的…","〜のほとんど","Most of the students agreed.","生徒(せいと)のほとんどが賛成(さんせい)した。",2]);
+P.push(["a kind of ~","一种…","一種(いっしゅ)の〜","It is a kind of Japanese food.","それは日本料理(にほんりょうり)の一種(いっしゅ)だ。",1]);
+P.push(["be going to ~","打算…","〜するつもりだ","I am going to study abroad.","私(わたし)は留学(りゅうがく)するつもりだ。",3]);
+P.push(["want A to ~","想让A做…","Aに〜してほしい","I want you to come with me.","あなたに一緒(いっしょ)に来(き)てほしい。",2]);
+P.push(["tell A to ~","叫A做…","Aに〜するように言(い)う","She told me to wait here.","彼女(かのじょ)は私(わたし)にここで待(ま)つように言(い)った。",2]);
+P.push(["ask A to ~","请求A做…","Aに〜するよう頼(たの)む","I asked him to help me.","私(わたし)は彼(かれ)に手伝(てつだ)ってくれるよう頼(たの)んだ。",2]);
+P.push(["help A ~","帮助A做…","Aが〜するのを手伝(てつだ)う","He helped me carry the box.","彼(かれ)は私(わたし)が箱(はこ)を運(はこ)ぶのを手伝(てつだ)ってくれた。",2]);
+P.push(["let A ~","让A做…","Aに〜させる","Let me try once more.","もう一度(いちど)やらせてください。",2]);
+P.push(["make A ~","使A…","Aを〜にする","The news made me happy.","その知(し)らせは私(わたし)を幸(しあわ)せにした。",2]);
+P.push(["stop ~ing","停止做…","〜するのをやめる","He stopped talking suddenly.","彼(かれ)は突然(とつぜん)話(はな)すのをやめた。",2]);
+P.push(["finish ~ing","做完…","〜し終(お)える","I finished reading the book.","私(わたし)はその本(ほん)を読(よ)み終(お)えた。",2]);
+P.push(["enjoy ~ing","享受做…","〜するのを楽(たの)しむ","We enjoyed talking with them.","私(わたし)たちは彼(かれ)らと話(はな)すのを楽(たの)しんだ。",2]);
+P.push(["be busy ~ing","忙于做…","〜するのに忙(いそが)しい","She is busy preparing for the trip.","彼女(かのじょ)は旅行(りょこう)の準備(じゅんび)で忙(いそが)しい。",1]);
+P.push(["How long ~?","多久？","どのくらいの間(あいだ)〜","How long have you lived here?","どのくらいここに住(す)んでいますか。",2]);
+P.push(["How many ~?","多少个？","いくつの〜","How many books do you have?","本(ほん)を何冊(なんさつ)持(も)っていますか。",3]);
+P.push(["How often ~?","多久一次？","どのくらいの頻度(ひんど)で〜","How often do you play tennis?","どのくらいテニスをしますか。",2]);
+P.push(["Have you ever ~?","你曾经…吗？","〜したことがありますか","Have you ever been to Hokkaido?","北海道(ほっかいどう)へ行(い)ったことがありますか。",2]);
+P.push(["have been to ~","去过…","〜へ行(い)ったことがある","I have been to Kyoto twice.","私(わたし)は京都(きょうと)へ二度(にど)行(い)ったことがある。",2]);
+P.push(["have been ~ing","一直在做…","ずっと〜し続(つづ)けている","I have been studying for two hours.","私(わたし)は二時間(にじかん)ずっと勉強(べんきょう)している。",1]);
+P.push(["It is said that ~","据说…","〜と言(い)われている","It is said that he is a genius.","彼(かれ)は天才(てんさい)だと言(い)われている。",1]);
+P.push(["the way to ~","去…的路","〜への行(い)き方(かた)","Could you tell me the way to the museum?","博物館(はくぶつかん)への行(い)き方(かた)を教(おし)えていただけますか。",2]);
+P.push(["make friends with ~","与…交朋友","〜と友(とも)だちになる","I made friends with a girl from India.","私(わたし)はインド出身(しゅっしん)の女(おんな)の子(こ)と友(とも)だちになった。",1]);
+P.push(["take a look at ~","看一看…","〜をちょっと見(み)る","Take a look at this graph.","このグラフをちょっと見(み)てください。",1]);
+P.push(["come up with ~","想出…","〜を思(おも)いつく","She came up with a good idea.","彼女(かのじょ)はよい考(かんが)えを思(おも)いついた。",1]);
+P.push(["put off ~","推迟…","〜を延期(えんき)する","They put off the meeting.","彼(かれ)らは会議(かいぎ)を延期(えんき)した。",1]);
+P.push(["run out of ~","用完…","〜を切(き)らす","We ran out of paper.","紙(かみ)を切(き)らしてしまった。",1]);
+P.push(["be tired of ~","厌倦…","〜にあきている","I am tired of doing the same thing.","同(おな)じことをするのにあきた。",1]);
+P.push(["be used to ~ing","习惯于…","〜することに慣(な)れている","He is used to speaking English.","彼(かれ)は英語(えいご)を話(はな)すのに慣(な)れている。",1]);
+P.push(["give A a hand","帮A一把","Aに手(て)を貸(か)す","Could you give me a hand?","手(て)を貸(か)していただけますか。",1]);
+P.push(["keep ~ing","持续做…","〜し続(つづ)ける","He kept running for an hour.","彼(かれ)は一時間(いちじかん)走(はし)り続(つづ)けた。",2]);
+P.push(["stop A from ~ing","阻止A做…","Aが〜するのを妨(さまた)げる","The rain stopped us from going out.","雨(あめ)のせいで外出(がいしゅつ)できなかった。",1]);
+P.push(["be filled with joy","充满喜悦","喜(よろこ)びでいっぱいだ","Her heart was filled with joy.","彼女(かのじょ)の心(こころ)は喜(よろこ)びでいっぱいだった。",1]);
+P.push(["for a while","一会儿","しばらくの間(あいだ)","Please wait here for a while.","しばらくここでお待(ま)ちください。",1]);
+P.push(["little by little","一点一点地","少(すこ)しずつ","He is getting better little by little.","彼(かれ)は少(すこ)しずつよくなっている。",1]);
+P.push(["one another","互相","お互(たが)いに","We should help one another.","私(わたし)たちはお互(たが)いに助(たす)け合(あ)うべきだ。",1]);
+P.push(["on the other hand","另一方面","一方(いっぽう)で","On the other hand, it costs a lot.","一方(いっぽう)で、費用(ひよう)がかなりかかる。",1]);
+P.push(["in this way","以这种方式","このようにして","In this way, we saved energy.","このようにして、私(わたし)たちはエネルギーを節約(せつやく)した。",1]);
+P.push(["as a result","结果","その結果(けっか)","As a result, the number decreased.","その結果(けっか)、数(かず)が減(へ)った。",1]);
+P.push(["these days","最近","最近(さいきん)では","These days many people work at home.","最近(さいきん)では在宅(ざいたく)で働(はたら)く人(ひと)が多(おお)い。",1]);
+P.push(["from now on","从今以后","これからは","From now on, I will study every day.","これからは毎日(まいにち)勉強(べんきょう)します。",1]);
+_c="教室で使う英語";
+S.push(["May I ask you a question?","我可以问个问题吗？","質問(しつもん)してもいいですか。",3]);
+S.push(["Could you say that again, please?","能请您再说一遍吗？","もう一度(いちど)言(い)っていただけますか。",3]);
+S.push(["How do you spell it?","这个怎么拼？","つづりを教(おし)えてください。",3]);
+S.push(["What does this word mean?","这个单词是什么意思？","この単語(たんご)はどういう意味(いみ)ですか。",3]);
+S.push(["I'm sorry, I don't understand.","抱歉，我不明白。","すみません、わかりません。",3]);
+S.push(["Please speak more slowly.","请说慢一点。","もっとゆっくり話(はな)してください。",3]);
+S.push(["Let me try once more.","让我再试一次。","もう一度(いちど)やらせてください。",2]);
+S.push(["May I go to the restroom?","我可以去洗手间吗？","お手洗(てあら)いに行(い)ってもいいですか。",3]);
+S.push(["I forgot to bring my textbook.","我忘带课本了。","教科書(きょうかしょ)を持(も)ってくるのを忘(わす)れました。",2]);
+S.push(["Can I borrow your eraser?","能借我橡皮吗？","消(け)しゴムを借(か)りてもいいですか。",3]);
+S.push(["We are going to have a test tomorrow.","明天我们有考试。","明日(あした)テストがあります。",3]);
+S.push(["Please hand in your report by Friday.","请在周五前交报告。","金曜日(きんようび)までにレポートを提出(ていしゅつ)してください。",2]);
+_c="道案内・買い物";
+S.push(["Excuse me, could you tell me the way to the station?","打扰一下，能告诉我去车站怎么走吗？","すみません、駅(えき)への行(い)き方(かた)を教(おし)えていただけますか。",3]);
+S.push(["Go straight and turn right at the second corner.","直走，在第二个路口右转。","まっすぐ行(い)って、二(ふた)つ目(め)の角(かど)を右(みぎ)に曲(ま)がってください。",2]);
+S.push(["It takes about ten minutes on foot.","走路大约十分钟。","徒歩(とほ)で約(やく)十分(じゅっぷん)かかります。",2]);
+S.push(["You can't miss it.","你不会错过的。","すぐにわかりますよ。",1]);
+S.push(["Which bus goes to the museum?","哪路公交去博物馆？","どのバスが博物館(はくぶつかん)へ行(い)きますか。",2]);
+S.push(["How much is this?","这个多少钱？","これはいくらですか。",3]);
+S.push(["I'll take this one.","我要这个。","これをいただきます。",3]);
+S.push(["Do you have a smaller size?","有小一点的尺码吗？","もっと小(ちい)さいサイズはありますか。",2]);
+S.push(["I'm just looking, thank you.","我只是看看，谢谢。","見(み)ているだけです、ありがとう。",2]);
+S.push(["Here you are.","给你。","はい、どうぞ。",3]);
+_c="電話・依頼・お礼";
+S.push(["Hello. This is Ken speaking.","你好，我是健。","もしもし、健(けん)です。",3]);
+S.push(["May I speak to Mr. Brown?","我可以和布朗先生通话吗？","ブラウンさんをお願(ねが)いできますか。",2]);
+S.push(["I'm sorry, he is out now.","抱歉，他现在不在。","すみません、彼(かれ)は今(いま)外出中(がいしゅつちゅう)です。",2]);
+S.push(["Can I leave a message?","我可以留言吗？","伝言(でんごん)をお願(ねが)いできますか。",2]);
+S.push(["I'll call you back later.","我稍后回电给你。","あとでかけ直(なお)します。",2]);
+S.push(["Shall I help you with your bag?","要我帮你拿包吗？","かばんをお持(も)ちしましょうか。",2]);
+S.push(["Would you like something to drink?","要喝点什么吗？","何(なに)か飲(の)み物(もの)はいかがですか。",2]);
+S.push(["Thank you very much for your help.","非常感谢你的帮助。","助(たす)けてくださって本当(ほんとう)にありがとうございます。",3]);
+S.push(["You're welcome.","不客气。","どういたしまして。",3]);
+S.push(["I'm sorry to hear that.","听到这个我很难过。","それはお気(き)の毒(どく)に。",2]);
+_c="自己紹介・スピーチ";
+S.push(["Nice to meet you. My name is Lin.","很高兴认识你，我叫林。","はじめまして。林(りん)といいます。",3]);
+S.push(["I'm from China, but I live in Japan now.","我来自中国，现在住在日本。","中国(ちゅうごく)出身(しゅっしん)ですが、今(いま)は日本(にほん)に住(す)んでいます。",3]);
+S.push(["I'm a third-year student at this school.","我是这所学校三年级的学生。","私(わたし)はこの学校(がっこう)の三年生(さんねんせい)です。",3]);
+S.push(["I belong to the tennis club.","我参加网球社。","私(わたし)はテニス部(ぶ)に所属(しょぞく)しています。",3]);
+S.push(["My favorite subject is English.","我最喜欢的科目是英语。","私(わたし)の好(す)きな教科(きょうか)は英語(えいご)です。",3]);
+S.push(["I like reading books in my free time.","我空闲时喜欢读书。","ひまなときは本(ほん)を読(よ)むのが好(す)きです。",3]);
+S.push(["In the future, I want to work abroad.","将来我想在国外工作。","将来(しょうらい)は海外(かいがい)で働(はたら)きたいです。",2]);
+S.push(["Today I'd like to talk about the environment.","今天我想谈谈环境。","今日(きょう)は環境(かんきょう)についてお話(はな)ししたいと思(おも)います。",2]);
+S.push(["Thank you for listening.","谢谢聆听。","ご清聴(せいちょう)ありがとうございました。",2]);
+S.push(["I have three reasons for this.","我有三个理由。","理由(りゆう)は三(みっ)つあります。",2]);
+S.push(["First, it is good for our health.","第一，这对健康有益。","第一(だいいち)に、それは健康(けんこう)によいです。",2]);
+S.push(["Second, it does not cost much money.","第二，它花不了多少钱。","第二(だいに)に、あまりお金(かね)がかかりません。",2]);
+S.push(["Finally, it is easy for everyone to start.","最后，任何人都容易开始。","最後(さいご)に、誰(だれ)でも簡単(かんたん)に始(はじ)められます。",2]);
+_c="英作文で使える型";
+S.push(["I think that we should protect nature.","我认为我们应该保护自然。","私(わたし)たちは自然(しぜん)を守(まも)るべきだと思(おも)います。",2]);
+S.push(["I agree with this idea for two reasons.","我赞成这个想法，有两个理由。","二(ふた)つの理由(りゆう)でこの考(かんが)えに賛成(さんせい)です。",1]);
+S.push(["In my opinion, reading is very important.","在我看来，阅读非常重要。","私(わたし)の意見(いけん)では、読書(どくしょ)はとても大切(たいせつ)です。",1]);
+S.push(["For example, we can start by saving water.","例如，我们可以从节约用水开始。","たとえば、水(みず)を節約(せつやく)することから始(はじ)められます。",2]);
+S.push(["For these reasons, I believe it is a good idea.","基于这些理由，我相信这是个好主意。","これらの理由(りゆう)から、よい考(かんが)えだと思(おも)います。",1]);
+S.push(["On the other hand, some people don't agree.","另一方面，有些人不赞成。","一方(いっぽう)で、賛成(さんせい)しない人(ひと)もいます。",1]);
+S.push(["That is why I want to be a teacher.","这就是我想当老师的原因。","だから私(わたし)は先生(せんせい)になりたいのです。",1]);
+S.push(["The more we learn, the more we want to know.","学得越多，就越想知道更多。","学(まな)べば学(まな)ぶほど、もっと知(し)りたくなります。",1]);
+S.push(["It is important for us to help each other.","互相帮助对我们来说很重要。","お互(たが)いに助(たす)け合(あ)うことが私(わたし)たちには大切(たいせつ)です。",1]);
+S.push(["I was so happy that I couldn't say anything.","我高兴得说不出话来。","うれしすぎて何(なに)も言(い)えませんでした。",1]);
+S.push(["This book is too difficult for me to read.","这本书对我来说太难读了。","この本(ほん)は難(むずか)しすぎて私(わたし)には読(よ)めません。",1]);
+S.push(["He is one of the most famous singers in Japan.","他是日本最有名的歌手之一。","彼(かれ)は日本(にほん)で最(もっと)も有名(ゆうめい)な歌手(かしゅ)の一人(ひとり)です。",1]);
+S.push(["The number of foreign visitors is increasing.","外国游客的数量在增加。","外国人(がいこくじん)訪問者(ほうもんしゃ)の数(かず)が増(ふ)えています。",1]);
+_c="長文の頻出構文";
+S.push(["According to the graph, about half of them agreed.","根据图表，大约一半的人赞成。","グラフによると、約半数(やくはんすう)が賛成(さんせい)しました。",1]);
+S.push(["This temple was built about 400 years ago.","这座寺庙建于大约400年前。","この寺(てら)は約(やく)四百年前(よんひゃくねんまえ)に建(た)てられました。",1]);
+S.push(["English is spoken by many people around the world.","世界上很多人说英语。","英語(えいご)は世界中(せかいじゅう)の多(おお)くの人(ひと)に話(はな)されています。",2]);
+S.push(["I have lived in this town since I was five.","我从五岁起就住在这个镇上。","私(わたし)は五歳(ごさい)のときからこの町(まち)に住(す)んでいます。",2]);
+S.push(["Have you ever thought about your future?","你想过自己的将来吗？","将来(しょうらい)について考(かんが)えたことがありますか。",2]);
+S.push(["If I were you, I would tell the truth.","如果我是你，我会说实话。","私(わたし)があなたなら、本当(ほんとう)のことを言(い)うでしょう。",1]);
+S.push(["I wish I could speak English like you.","我希望能像你一样说英语。","あなたのように英語(えいご)が話(はな)せたらいいのに。",1]);
+S.push(["Do you know where he is from?","你知道他来自哪里吗？","彼(かれ)がどこの出身(しゅっしん)か知(し)っていますか。",1]);
+S.push(["Please tell me what you want to do.","请告诉我你想做什么。","何(なに)がしたいのか教(おし)えてください。",1]);
+S.push(["The girl playing the piano is my sister.","正在弹钢琴的女孩是我妹妹。","ピアノを弾(ひ)いている女(おんな)の子(こ)は私(わたし)の妹(いもうと)です。",1]);
+S.push(["This is the book which I bought yesterday.","这是我昨天买的书。","これは私(わたし)が昨日(きのう)買(か)った本(ほん)です。",1]);
+S.push(["I know a boy whose father is a doctor.","我认识一个父亲是医生的男孩。","私(わたし)は父親(ちちおや)が医者(いしゃ)である男(おとこ)の子(こ)を知(し)っています。",1]);
+
+/* ============ state ============ */
+const LS = "eitango-note/v1";
+const DAY = 864e5;
+const today = () => Math.floor((Date.now() - new Date().getTimezoneOffset()*6e4) / DAY);
+const dstr  = () => new Date(Date.now() - new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const BOXES = [0,1,2,4,8,16,40];
+const MASTER = 4;
+
+const defState = {
+  srs:{}, log:{}, best:0, mark:{},
+  cfg:{ rate:.9, goal:30, dir:"jp", decks:[], view:"cards", list:false, shadow:2, furi:true, lvs:[3,2,1], bar:false, autoNext:false, exam:"2027-03-01" }
+};
+let st = defState;
+try{ const r = localStorage.getItem(LS); if(r) st = deepMerge(defState, JSON.parse(r)); }catch(e){}
+function deepMerge(a,b){ const o = Array.isArray(a)?b:Object.assign({},a);
+  if(!Array.isArray(a)) for(const k in b){ o[k] = (b[k] && typeof b[k]==="object" && !Array.isArray(b[k])) ? deepMerge(a[k]||{}, b[k]) : b[k]; }
+  return o; }
+let saveT=null;
+function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem(LS, JSON.stringify(st)); }catch(e){} },200); }
+
+/* ============ decks ============ */
+GRAM.forEach((g,i)=>g.no=i+1);
+SPK.forEach((s,i)=>s.no=i+1);
+const VCATS = [...new Set(VOCAB.map(v=>v.cat))];
+const GCATS = [...new Set(GRAM.map(g=>g.cat))];
+const SCATS = [...new Set(SPK.map(s=>s.cat))];
+st.cfg.decks = st.cfg.decks.filter(c=>VCATS.includes(c));
+if(!st.cfg.decks.length) st.cfg.decks = [...VCATS];
+
+/* ============ srs ============ */
+const key = it => it._t + ":" + (it.w || it.p || it.jp);
+const rec = it => st.srs[key(it)];
+const isDue = it => { const r = rec(it); return r && r[1] <= today(); };
+const isNew = it => !rec(it);
+function grade(it, g){
+  const k = key(it); const r = st.srs[k] || [0,0];
+  let b = r[0];
+  if(g===3) b = Math.min(BOXES.length-1, b+1);
+  else if(g===2) b = Math.max(1, b);
+  else b = 0;
+  st.srs[k] = [b, today() + (g===1 ? 0 : g===2 ? 1 : BOXES[b])];
+  const d = dstr(); st.log[d] = (st.log[d]||0) + 1;
+  st.best = Math.max(st.best||0, st.log[d]);
+  save();
+}
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+/* ============ tts ============ */
+let jvoice=null, shadowT=null;
+function loadVoices(){ try{ const v=speechSynthesis.getVoices();
+  jvoice = v.find(x=>/^en-US/i.test(x.lang)) || v.find(x=>/^en/i.test(x.lang)) || null; }catch(e){} }
+if("speechSynthesis" in window){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+function utter(t,rate){ const u=new SpeechSynthesisUtterance(t); u.lang="en-US";
+  if(jvoice) u.voice=jvoice; u.rate = rate ?? st.cfg.rate; return u; }
+function say(t,rate){ if(!("speechSynthesis" in window)) return;
+  clearTimeout(shadowT); speechSynthesis.cancel(); speechSynthesis.speak(utter(t,rate)); }
+function shadowing(t,times){ if(!("speechSynthesis" in window)) return;
+  clearTimeout(shadowT); speechSynthesis.cancel(); let i=0;
+  const step=()=>{ if(i++>=times) return; const u=utter(t);
+    u.onend=()=>{ shadowT=setTimeout(step, 700 + t.length*95); }; speechSynthesis.speak(u); };
+  step(); }
+const strip = s => s.replace(/[（(][^）)]*[）)]/g,"");
+
+/* ============ helpers ============ */
+const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const el = h => { const d=document.createElement("div"); d.innerHTML=h.trim(); return d.firstElementChild; };
+const $  = s => document.querySelector(s);
+function spk(text,label){ return '<button class="speak" data-say="'+esc(text)+'">◗ '+(label||"音声")+'</button>'; }
+const RUBY=/([々ヶ一-鿿]+)[（(]([^）)]+)[）)]/g;
+function ruby(s){ if(!s) return "";
+  return st.cfg.furi ? esc(s).replace(RUBY,(m,b,r)=>"<ruby>"+b+"<rt>"+r+"</rt></ruby>") : esc(strip(s)); }
+const plain = s => String(s||"").replace(/[（(][^）)]*[）)]/g,"");
+const LVN={3:"基礎",2:"標準",1:"発展"};
+const pill = it => '<span class="lv lv'+it.lv+'">'+LVN[it.lv]+'</span>';
+const lvOK = it => st.cfg.lvs.includes(it.lv);
+function lvChips(){ return '<div class="chips">' +
+  [[3,"基礎 中1-2"],[2,"標準 中3"],[1,"発展 入試"]].map(x=>'<button class="chip" data-lv="'+x[0]+'" aria-pressed="'+st.cfg.lvs.includes(x[0])+'">'+x[1]+'</button>').join("") +
+  '<button class="chip" data-furitoggle="1" aria-pressed="'+st.cfg.furi+'" style="margin-left:14px">ふりがな</button></div>'; }
+function noBtn(t, n){ return '<button class="no'+(st.mark[t]===n?" on":"")+'" data-no="'+t+':'+n+
+  '" title="ここにしおりを挟む／外す">'+n+'</button>'; }
+function resumeBar(t){ const n = st.mark[t];
+  return n ? '<div class="resume">しおり <b>#'+n+'</b> <button class="chip" data-jump="'+t+'">そこへ移動</button>' +
+    '<button class="chip" data-clearmark="'+t+'">外す</button></div>' : ""; }
+function jumpTo(t){ const el = document.querySelector('[data-no="'+t+':'+st.mark[t]+'"]');
+  if(el) el.closest(".row").scrollIntoView({block:"center"}); }
+function daysLeft(){ const d=Math.ceil((new Date(st.cfg.exam+"T00:00:00")-new Date())/864e5); return isNaN(d)?null:d; }
+function countdown(){ const d=daysLeft();
+  return d===null?"":'<span class="countdown" id="examTag" title="クリックで入試日を変更">入試まで あと '+
+    (d>0?d+" 日":"—")+'</span>'; }
+function applyFuri(){ document.documentElement.setAttribute("data-furi", st.cfg.furi?"on":"off"); }
+
+/* ============ views ============ */
+let deck=[], idx=0, cur=null, shown=false, marks=new Map(), qs=[], qi=0, quizN=0, quizOK=0;
+const syncCur = ()=>{ cur = deck[idx] || null; };
+
+function setView(v){ st.cfg.view=v; save(); render(); }
+function render(){
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected", t.dataset.view===st.cfg.view));
+  ({cards:vCards, grammar:vGrammar, speak:vSpeak, quiz:vQuiz, stats:vStats})[st.cfg.view]();
+}
+function head(title, sub, tools, tools2, quick){
+  $("#vTitle").textContent=title; $("#vSub").innerHTML=sub||"";
+  $("#barQuick").innerHTML = quick||"";
+  $("#barTools").innerHTML = tools||""; $("#barTools2").innerHTML = tools2||"";
+  const has = !!(tools||tools2), t = $("#barToggle");
+  t.style.display = has ? "" : "none";
+  t.innerHTML = '絞り込み<b>'+(st.cfg.bar?"▴":"▾")+'</b>';
+  t.setAttribute("aria-expanded", String(!!st.cfg.bar));
+  t.classList.toggle("on", st.cfg.decks.length < VCATS.length || st.cfg.lvs.length < 3);
+  $("#barPanel").hidden = !has || !st.cfg.bar; }
+
+/* ---- 単語 ---- */
+function pool(){ return VOCAB.filter(v=>st.cfg.decks.includes(v.cat) && lvOK(v)); }
+function buildQueue(){
+  const p = pool();
+  const due = shuffle(p.filter(isDue));
+  const fresh = p.filter(isNew);
+  deck = due.concat(fresh.slice(0, Math.max(0, st.cfg.goal - due.length)));
+  idx = 0; marks = new Map(); shown = false; syncCur();
+}
+function deckChips(){
+  return '<div class="chips">' + VCATS.map(c=>{
+    const inCat = VOCAB.filter(v=>v.cat===c && lvOK(v));
+    const n = inCat.filter(v=>st.srs["V:"+v.w] && st.srs["V:"+v.w][0]>=MASTER).length;
+    const t = inCat.length;
+    return '<button class="chip" data-deck="'+esc(c)+'" aria-pressed="'+st.cfg.decks.includes(c)+'">'+esc(c)+' <span style="font-family:var(--mono);font-size:11px;opacity:.7">'+n+'/'+t+'</span></button>';
+  }).join("") + '</div>';
+}
+function vCards(){
+  const p = pool();
+  const dueN = p.filter(isDue).length, newN = p.filter(isNew).length;
+  const done = st.log[dstr()]||0;
+  head("単語", (st.cfg.list?"一覧 ":"") + p.length + " 語 / 復習 " + dueN + " / 未学習 " + newN + " / 今日 " + done,
+    deckChips() +
+    '<div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap">' +
+    '<div class="seg"><button data-dir="jp" aria-pressed="'+(st.cfg.dir==="jp")+'">英→意味</button><button data-dir="zh" aria-pressed="'+(st.cfg.dir==="zh")+'">意味→英</button></div></div>',
+    lvChips(),
+    countdown() + '<div class="seg"><button data-mode="card" aria-pressed="'+(!st.cfg.list)+'">カード</button><button data-mode="list" aria-pressed="'+(!!st.cfg.list)+'">一覧</button></div>');
+
+  if(st.cfg.list){ listVocab(p); return; }
+  if(!p.length){ $("#view").innerHTML='<div class="empty"><div class="big">対象が空です。</div>' +
+    '<div class="note">デッキかレベルを選び直してください。</div></div>'; return; }
+  if(!deck.length) buildQueue();
+  syncCur();
+  if(!cur){                                    // 一巡やり切った（デッキは「前へ」用に残す）
+    const done2 = deck.length;
+    $("#view").innerHTML = '<div class="empty">' +
+      '<div class="big">'+(done2?'この一巡 '+done2+' 枚を終えました。':'今日の分は終わりました。')+'</div>' +
+      '<div class="note">復習は自動で先の日付に回してあります。</div>' +
+      '<div class="empty-btns">' +
+      (done2?'<button class="chip" id="prevBtn">← 前へ戻って見直す</button>':"") +
+      '<button class="chip" id="moreBtn">次の '+st.cfg.goal+' 枚へ</button>' +
+      '<button class="chip" id="freeBtn">ランダムに 20 語</button></div></div>';
+    if(done2) $("#prevBtn").onclick = ()=>{ idx=deck.length-1; shown=true; syncCur(); vCards(); };
+    $("#moreBtn").onclick = ()=>{ buildQueue(); vCards(); };
+    $("#freeBtn").onclick = ()=>{ deck = shuffle(p).slice(0,20); idx=0; marks=new Map(); shown=false; syncCur(); vCards(); };
+    return;
+  }
+  const r = rec(cur) || [0,0];
+  const front = st.cfg.dir==="jp" ? esc(cur.w) : ruby(cur.r)+' <span class="zh" style="font-size:.62em;color:var(--ink3)">'+esc(cur.c)+'</span>';
+  const long = (st.cfg.dir==="jp"? cur.w.length>11 : plain(cur.r).length>9);
+  $("#view").innerHTML =
+   '<div class="card"><div class="tag"><span class="box-dot" style="opacity:'+(.3+r[0]*.12)+'"></span>' + pill(cur) + ' ' +
+     esc(cur.cat) + (marks.get(cur)&&marks.get(cur).g ? ' <span class="done-mark">採点済み '+GN[marks.get(cur).g]+'</span>' : '') +
+     ' <span style="margin-left:auto">BOX ' + r[0] + (r[0]>=MASTER?" · 定着":"") + ' · ' + (idx+1) + ' / ' + deck.length + '</span></div>' +
+   '<div class="q'+(long?" small":"")+'" '+(st.cfg.dir==="zh"?'style="font-family:var(--ui)"':'style="font-family:var(--en)"')+'>'+front+'</div>' +
+   (shown ? '<div class="reveal">' +
+     (st.cfg.dir==="jp" ? '<div class="reading">'+ruby(cur.r)+'</div><div class="mean zh">'+esc(cur.c)+'</div>'
+                        : '<div class="reading" style="font-family:var(--en);font-size:34px;color:var(--ink);letter-spacing:-.01em">'+esc(cur.w)+'</div>') +
+     '<div class="ex"><div class="ex-en">'+esc(cur.ex)+'</div><div class="ex-jp" style="margin-top:6px">'+ruby(cur.exc)+'</div>' +
+     '<div style="margin-top:12px;display:flex;gap:8px">'+spk(cur.w,"単語")+spk(cur.ex,"例文")+'</div></div></div>'
+     : '<div class="hint">タップ / <kbd>Space</kbd> でめくる　→　めくると <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> で採点</div>') +
+   '</div>' +
+   (shown ? '<div class="grade">' +
+      '<button class="g1" data-g="1">忘れた<b>AGAIN <kbd>1</kbd></b></button>' +
+      '<button class="g2" data-g="2">あいまい<b>HARD <kbd>2</kbd></b></button>' +
+      '<button class="g3" data-g="3">覚えた<b>GOOD <kbd>3</kbd></b></button></div>'
+    : '<div class="grade"><button data-flip="1" style="grid-column:span 3">めくる<b><kbd>Space</kbd> / タップ</b></button></div>') +
+   '<div class="progress-line"><i style="width:'+Math.min(100,(done/st.cfg.goal)*100)+'%"></i></div>' +
+   '<div class="foot"><button class="nav" id="prevBtn"'+(idx>0?"":" disabled")+
+     ' title="採点せずに一つ前を見る">← 前へ<b><kbd>←</kbd></b></button>' +
+   '<button class="nav" id="nextBtn"'+(idx<deck.length?"":" disabled")+
+     ' title="採点せずに次を見る">次へ →<b><kbd>→</kbd></b></button>' +
+   '<span class="note">今日 '+done+' / 目標 '+st.cfg.goal+' 枚</span></div>';
+
+  if(!shown) $(".card").onclick = flip;
+  document.querySelectorAll("[data-flip]").forEach(b=>b.onclick=flip);
+  document.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>doGrade(+b.dataset.g));
+  $("#prevBtn").onclick = ()=>go(-1);
+  $("#nextBtn").onclick = ()=>go(1);
+}
+function flip(){ if(shown) return; shown=true; vCards();
+  if(st.cfg.dir==="zh" && cur) say(cur.w); }
+const GN = {1:"忘れた", 2:"あいまい", 3:"覚えた"};
+function go(d){                       // 採点せずに移動するだけ
+  const n = idx + d;
+  if(n < 0 || n > deck.length) return;
+  idx = n; shown = false; syncCur(); vCards(); }
+function doGrade(g){
+  if(!cur) return;
+  const k = key(cur);
+  let m = marks.get(cur);
+  if(m){                              // このセッションで採点済み → 前回分を取り消す
+    if(m.rec) st.srs[k] = m.rec.slice(); else delete st.srs[k];
+    if(st.log[m.day]){ st.log[m.day]--; if(!st.log[m.day]) delete st.log[m.day]; }
+    if(m.g===1){ const j = deck.indexOf(cur, idx+1); if(j>=0) deck.splice(j,1); }
+  } else {
+    m = { rec: st.srs[k] ? st.srs[k].slice() : null };
+    marks.set(cur, m);
+  }
+  grade(cur, g);
+  m.g = g; m.day = dstr();
+  if(g===1) deck.push(cur);
+  const v = Object.values(st.log); st.best = v.length ? Math.max(...v) : 0;
+  save();
+  idx++; shown=false; syncCur(); vCards(); }
+function listVocab(p){
+  const q = (st._q||"").trim();
+  const ql=q.toLowerCase();
+  const f = q ? p.filter(v=>v.w.toLowerCase().includes(ql)||v.r.includes(q)||v.c.includes(q)||v.ex.toLowerCase().includes(ql)) : p;
+  const CAP=180, cut=f.slice(0,CAP);
+  let html = '<input class="field" id="q" placeholder="英語・日本語・中国語で検索" value="'+esc(q)+'" style="margin-bottom:18px">' +
+    (f.length>CAP ? '<div class="note" style="margin-bottom:10px">'+f.length+' 件中 '+CAP+' 件を表示。絞り込んでください。</div>' : "");
+  let last="";
+  html += cut.map(v=>{
+    const r = st.srs["V:"+v.w]; let h="";
+    if(v.cat!==last){ last=v.cat; h = '<div class="group-head">'+esc(v.cat)+'<span>'+VOCAB.filter(x=>x.cat===v.cat).length+' 語</span></div>'; }
+    return h + '<div class="row"><div class="row-main"><div class="row-en">'+esc(v.w)+'</div>' +
+      '<div class="row-zh">'+ruby(v.r)+'　'+esc(v.c)+'</div>' +
+      '<div class="row-en" style="font-size:15px;margin-top:7px;color:var(--ink2)">'+esc(v.ex)+'</div>' +
+      '<div class="row-meta">'+ruby(v.exc)+(r?' · BOX '+r[0]:' · 未学習')+'</div></div>' +
+      '<div class="row-side">'+pill(v)+spk(v.w,"語")+spk(v.ex,"例")+'</div></div>';
+  }).join("") || '<div class="empty">該当なし</div>';
+  $("#view").innerHTML = html;
+  const inp=$("#q"); inp.oninput = ()=>{ st._q=inp.value; const s=inp.selectionStart;
+    listVocab(p); const n=$("#q"); n.focus(); n.setSelectionRange(s,s); };
+}
+
+/* ---- 文法 ---- */
+function vGrammar(){
+  const q=(st._gq||"").trim();
+  const base = GRAM.filter(lvOK);
+  const ql=q.toLowerCase();
+  const f = q ? base.filter(g=>g.p.toLowerCase().includes(ql)||g.c.includes(q)||g.ex.toLowerCase().includes(ql)||g.note.includes(q)) : base;
+  head("熟語", base.length+" / "+GRAM.length+" 熟語・連語", "", lvChips());
+  let last="";
+  const head0 = '<input class="field" id="gq" placeholder="熟語・意味・例文で検索" value="'+esc(q)+
+    '" style="margin-bottom:16px">' + resumeBar("G");
+  $("#view").innerHTML = head0 + (f.map(g=>{
+    let h=""; if(g.cat!==last){ last=g.cat; h='<div class="group-head">'+esc(g.cat)+'<span>'+base.filter(x=>x.cat===g.cat).length+'</span></div>'; }
+    return h + '<div class="row num">' + noBtn("G", g.no) + '<div class="row-main">' +
+      '<div class="row-en"><em>'+esc(g.p)+'</em></div>' +
+      '<div class="row-zh">'+ruby(g.note)+'　'+esc(g.c)+'</div>' +
+      '<div class="row-en" style="margin-top:8px;font-size:15px;color:var(--ink2)">'+esc(g.ex)+'</div>' +
+      '<div class="row-meta">'+ruby(g.exc)+'</div></div>' +
+      '<div class="row-side">'+pill(g)+spk(g.ex,"例文")+'</div></div>';
+  }).join("") || '<div class="empty">該当なし</div>');
+  const inp=$("#gq"); inp.oninput=()=>{ st._gq=inp.value; const s=inp.selectionStart;
+    vGrammar(); const n=$("#gq"); n.focus(); n.setSelectionRange(s,s); };
+}
+
+/* ---- 会話 ---- */
+function vSpeak(){
+  const sc = st._sc || SCATS[0];
+  const q = (st._sq||"").trim();
+  const sbase = SPK.filter(lvOK);
+  const ql2=q.toLowerCase();
+  let f = sbase.filter(s=>s.cat===sc);
+  if(q) f = sbase.filter(s=>s.jp.toLowerCase().includes(ql2)||s.zh.includes(q)||s.exc.includes(q));
+  const scChips = '<div class="chips scene">'+SCATS.map(c=>{
+      const n = sbase.filter(x=>x.cat===c).length;
+      return '<button class="chip" data-sc="'+esc(c)+'" aria-pressed="'+(!q&&c===sc)+'">'+esc(c)+
+        ' <span style="font-family:var(--mono);font-size:11px;opacity:.7">'+n+'</span></button>'; }).join("")+'</div>';
+  head("例文", sbase.length+" / "+SPK.length+" 文 · 音読 "+st.cfg.rate.toFixed(2)+"x",
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+    '<div class="seg">'+[.7,.8,.9,1].map(r=>'<button data-rate="'+r+'" aria-pressed="'+(Math.abs(st.cfg.rate-r)<.01)+'">'+r+'x</button>').join("")+'</div>' +
+    '<div class="seg">'+[1,2,3].map(n=>'<button data-sh="'+n+'" aria-pressed="'+(st.cfg.shadow===n)+'">'+n+'回</button>').join("")+'</div></div>', lvChips());
+  $("#view").innerHTML =
+    scChips + resumeBar("S") +
+    '<input class="field" id="sq" placeholder="テーマをまたいで検索" value="'+esc(q)+'" style="margin-bottom:18px">' +
+    (q?"":'<div class="group-head">'+esc(sc)+'<span>'+f.length+' 文</span></div>') +
+    (f.map(s=>'<div class="row num">' + noBtn("S", s.no) + '<div class="row-main">' +
+      '<div class="row-en" style="font-size:17px">'+esc(s.jp)+'</div>' +
+      '<div class="row-meta" style="margin-top:5px">'+ruby(s.exc)+'</div>' +
+      '<div class="row-zh">'+esc(s.zh)+'</div></div>' +
+      '<div class="row-side">' + pill(s) +
+        '<button class="speak" data-say="'+esc(s.jp)+'">◗ 聞く</button>' +
+        '<button class="speak" data-shadow="'+esc(s.jp)+'">↻ 音読</button></div></div>').join("")
+      || '<div class="empty">該当なし</div>');
+  const inp=$("#sq"); inp.oninput=()=>{ st._sq=inp.value; const c=inp.selectionStart;
+    vSpeak(); const n=$("#sq"); n.focus(); n.setSelectionRange(c,c); };
+}
+
+/* ---- 小試験 ---- */
+function mkQ(){
+  const p = pool(); if(p.length<4) return null;
+  const kind = Math.random();
+  if(kind < .38){ const a = p[Math.floor(Math.random()*p.length)];
+    const d = shuffle(p.filter(x=>x!==a && x.cat===a.cat)).slice(0,3);
+    return { q:plain(a.r)+"　"+a.c, qz:true, tip:"意味 → 英語", it:a,
+      opts: shuffle([a,...d]).map(x=>({t:x.w, en:true, ok:x===a})) }; }
+  if(kind < .72){ const a = p[Math.floor(Math.random()*p.length)];
+    const d = shuffle(p.filter(x=>x!==a && x.cat===a.cat)).slice(0,3);
+    return { q:a.w, en:true, tip:"英語 → 意味", it:a,
+      opts: shuffle([a,...d]).map(x=>({t:plain(x.r)+"　"+x.c, ok:x===a})) }; }
+  const gp = GRAM.filter(lvOK);
+  if(gp.length < 4){ const v = p[Math.floor(Math.random()*p.length)];
+    const vd = shuffle(p.filter(x=>x!==v)).slice(0,3);
+    return { q:v.w, en:true, tip:"英語 → 意味", it:v, opts: shuffle([v,...vd]).map(x=>({t:plain(x.r)+"　"+x.c, ok:x===v})) }; }
+  const a = gp[Math.floor(Math.random()*gp.length)];
+  const d = shuffle(gp.filter(x=>x!==a)).slice(0,3);
+  const core = a.p.replace(/[~〜]/g," ").replace(/\s+/g," ").trim();
+  const rx = new RegExp(core.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "i");
+  const blanked = rx.test(a.ex) ? a.ex.replace(rx, "______") : a.ex;
+  return { q: blanked, en:true, zhq:plain(a.note),
+    tip: rx.test(a.ex) ? "空所に入る熟語" : "この英文に合う熟語", it:{...a,_t:"G"},
+    opts: shuffle([a,...d]).map(x=>({t:x.p+"　"+plain(x.note), ok:x===a})) };
+}
+const curQ = ()=> qs[qi] || null;
+function qGo(d){
+  if(d < 0){ if(qi>0){ qi--; vQuiz(); } return; }
+  if(qi < qs.length-1){ qi++; }
+  else { const nq = mkQ(); if(!nq) return; qs.push(nq); qi = qs.length-1;
+         if(qs.length > 60){ qs.shift(); qi--; } }
+  vQuiz(); }
+function vQuiz(){
+  head("小試験", quizN? ("正解 "+quizOK+" / "+quizN+"　"+Math.round(quizOK/quizN*100)+"%") : "4択 · 単語と文法",
+    deckChips(), lvChips());
+  if(!qs.length){ const nq = mkQ(); if(nq){ qs.push(nq); qi = 0; } }
+  const q = curQ();
+  if(!q){ $("#view").innerHTML='<div class="empty">出題できる項目が足りません。デッキとレベルを選び直してください。</div>'; return; }
+  const it = q.it;
+  $("#view").innerHTML =
+    '<div class="card"><div class="tag">'+pill(it)+' '+esc(q.tip)+
+      '<span style="margin-left:auto">Q'+(qi+1)+' / '+qs.length+'</span></div>' +
+    '<div class="q'+(q.q.length>16?" small":"")+'" '+(q.en?'style="font-family:var(--en)"':'style="font-family:var(--ui)"')+'>'+esc(q.q)+'</div>' +
+    (q.zhq?'<div class="ex-zh" style="margin-top:8px">'+esc(q.zhq)+'</div>':"") + '</div>' +
+    '<div class="opts">'+q.opts.map((o,i)=>{
+      let cls = "opt";
+      if(q._done){ if(o.ok) cls += " right"; else if(i===q.picked) cls += " wrong"; }
+      return '<button class="'+cls+'" data-o="'+i+'"'+(q._done?" disabled":"")+'><span'+(o.en?' class="en"':' class="zh"')+'>'+esc(o.t)+'</span></button>';
+    }).join("")+'</div>' +
+    (q._done && it.ex ? '<div class="card" style="margin-top:14px;padding:18px 20px">' +
+       '<div class="ex-en">'+esc(it.ex)+'</div><div class="ex-jp" style="margin-top:6px">'+ruby(it.exc||"")+'</div></div>' : "") +
+    '<div class="foot"><button class="nav" id="qPrev"'+(qi>0?"":" disabled")+
+      ' title="採点済みの問題を見返す">← 前へ<b><kbd>←</kbd></b></button>' +
+    '<button class="nav" id="qNext">次へ →<b><kbd>→</kbd></b></button>' +
+    '<button class="nav tog" id="autoNext" aria-pressed="'+(!!st.cfg.autoNext)+
+      '" title="正解したとき、自動で次の問題へ進むかどうか">自動で次へ<b>'+(st.cfg.autoNext?"ON":"OFF")+'</b></button>' +
+    '<span class="note">'+(q._done?"回答済み":"未回答")+'</span></div>';
+  if(!q._done) document.querySelectorAll("[data-o]").forEach((b,i)=>b.onclick=()=>answer(i));
+  $("#qPrev").onclick = ()=>qGo(-1);
+  $("#qNext").onclick = ()=>qGo(1);
+  $("#autoNext").onclick = ()=>{ st.cfg.autoNext = !st.cfg.autoNext; save(); vQuiz(); };
+}
+function answer(i){
+  const q = curQ(); if(!q || q._done) return;
+  q._done = true; q.picked = i;
+  const ok = q.opts[i].ok; quizN++; if(ok) quizOK++;
+  grade(q.it, ok?3:1); save();
+  vQuiz();
+  if(q.it.ex) say(q.it.ex);
+  // 既定は止まる。トグル ON のときだけ正解で自動送り（不正解は常に止まる）
+  if(ok && st.cfg.autoNext) setTimeout(()=>{ if(curQ()===q && st.cfg.view==="quiz") qGo(1); }, 900);
+}
+
+/* ---- 記録 ---- */
+function vStats(){
+  head("記録", "学習の積み上げ");
+  const t=dstr(), all=Object.keys(st.srs).length;
+  const mastered = Object.values(st.srs).filter(r=>r[0]>=MASTER).length;
+  const dueTom = Object.values(st.srs).filter(r=>r[1]<=today()+1).length;
+  const days = Object.keys(st.log).length;
+  const total = Object.values(st.log).reduce((a,b)=>a+b,0);
+  let streak=0;
+  for(let i=0;i<400;i++){ const d=new Date(Date.now()-i*DAY-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+    if(st.log[d]) streak++; else if(i>0) break; }
+  const rows = [
+    ["単語", VOCAB, v=>"V:"+v.w], ["文法", GRAM, g=>"G:"+g.p], ["会話", SPK, s=>"S:"+s.jp]
+  ].map(([n,arr,k])=>{
+    const seen = arr.filter(x=>st.srs[k(x)]).length;
+    const m = arr.filter(x=>st.srs[k(x)] && st.srs[k(x)][0]>=MASTER).length;
+    return '<tr><td>'+n+'</td><td class="n">'+arr.length+'</td><td class="n">'+seen+'</td><td class="n">'+m+
+      '</td><td class="n">'+Math.round(m/arr.length*100)+'%</td></tr>'; }).join("");
+  const cats = VCATS.map(c=>{ const a=VOCAB.filter(v=>v.cat===c);
+    const m=a.filter(v=>st.srs["V:"+v.w]&&st.srs["V:"+v.w][0]>=MASTER).length;
+    return '<tr><td>'+esc(c)+'</td><td class="n">'+a.length+'</td><td class="n">'+m+'</td><td class="n">'+Math.round(m/a.length*100)+'%</td></tr>'; }).join("");
+  $("#view").innerHTML =
+   '<div class="stat-grid">' +
+   ['<div class="stat"><div class="stat-n">'+(st.log[t]||0)+'</div><div class="stat-l">今日めくった枚数</div></div>',
+    '<div class="stat"><div class="stat-n">'+streak+'</div><div class="stat-l">連続学習日数</div></div>',
+    '<div class="stat"><div class="stat-n">'+mastered+'</div><div class="stat-l">定着（BOX4 以上）</div></div>',
+    '<div class="stat"><div class="stat-n">'+all+'</div><div class="stat-l">学習した項目</div></div>',
+    '<div class="stat"><div class="stat-n">'+total+'</div><div class="stat-l">累計めくった枚数</div></div>',
+    '<div class="stat"><div class="stat-n">'+dueTom+'</div><div class="stat-l">明日までの復習</div></div>'].join("") + '</div>' +
+   '<div class="group-head">レベル別（目安）</div><div class="tbl-wrap"><table><thead><tr><th>レベル</th><th style="text-align:right">項目</th><th style="text-align:right">学習</th><th style="text-align:right">定着</th></tr></thead><tbody>'+
+   [[3,"N3 以下"],[2,"N2"],[1,"N1"]].map(x=>{
+     const all=[...VOCAB,...GRAM,...SPK].filter(o=>o.lv===x[0]);
+     const seen=all.filter(o=>rec(o)).length, m=all.filter(o=>rec(o)&&rec(o)[0]>=MASTER).length;
+     return '<tr><td><span class="lv lv'+x[0]+'">'+LVN[x[0]]+'</span> '+x[1]+'</td><td class="n">'+all.length+
+       '</td><td class="n">'+seen+'</td><td class="n">'+m+'</td></tr>'; }).join("") +
+   '</tbody></table></div>' +
+   '<div class="group-head">分野別</div><div class="tbl-wrap"><table><thead><tr><th>分野</th><th style="text-align:right">総数</th><th style="text-align:right">学習</th><th style="text-align:right">定着</th><th style="text-align:right">率</th></tr></thead><tbody>'+rows+'</tbody></table></div>' +
+   '<div class="group-head">単語デッキ</div><div class="tbl-wrap"><table><thead><tr><th>デッキ</th><th style="text-align:right">語数</th><th style="text-align:right">定着</th><th style="text-align:right">率</th></tr></thead><tbody>'+cats+'</tbody></table></div>' +
+   '<div class="group-head">設定</div>' +
+   '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px">' +
+   '<span class="note">1日の目標</span><div class="seg">'+[20,30,50,100].map(g=>'<button data-goal="'+g+'" aria-pressed="'+(st.cfg.goal===g)+'">'+g+'</button>').join("")+'</div>' +
+   '<span class="note" style="margin-left:14px">ふりがな</span><div class="seg"><button data-furitoggle="1" aria-pressed="'+st.cfg.furi+'">'+(st.cfg.furi?"表示中":"非表示")+'</button></div>' +
+   '<button class="chip danger" id="reset" style="margin-left:auto">学習記録を消す</button></div>' +
+   '<div class="note" style="margin-top:24px">記録はこの端末のブラウザ内だけに保存されます。iPhone と PC の進捗は別々です。' +
+   ('speechSynthesis' in window ? (jvoice? '音声：'+esc(jvoice.name) : '日本語音声が見つかりません。iOS は「設定 › アクセシビリティ › 読み上げコンテンツ › 声 › 日本語」から追加できます。') : '') + '</div>';
+  document.querySelectorAll("[data-goal]").forEach(b=>b.onclick=()=>{ st.cfg.goal=+b.dataset.goal; save(); vStats(); });
+  $("#reset").onclick = ()=>{ if(confirm("すべての学習記録を消します。よろしいですか？")){
+    st.srs={}; st.log={}; st.best=0; save(); deck=[]; idx=0; cur=null; marks=new Map(); vStats(); } };
+}
+
+/* ============ events ============ */
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>setView(t.dataset.view));
+$("#barToggle").onclick = ()=>{ st.cfg.bar = !st.cfg.bar; save(); render(); };
+if(st.cfg.theme) document.documentElement.setAttribute("data-theme", st.cfg.theme);
+applyFuri();
+$("#themeBtn").onclick = ()=>{
+  const r=document.documentElement, c=r.getAttribute("data-theme");
+  const dark = c ? c==="dark" : matchMedia("(prefers-color-scheme:dark)").matches;
+  st.cfg.theme = dark?"light":"dark"; save();
+  r.setAttribute("data-theme", st.cfg.theme); };
+document.addEventListener("click", e=>{
+  const s=e.target.closest("[data-say]");    if(s){ say(strip(s.dataset.say)); return; }
+  const sh=e.target.closest("[data-shadow]"); if(sh){ shadowing(sh.dataset.shadow, st.cfg.shadow); return; }
+  const d=e.target.closest("[data-deck]");
+  if(d){ const c=d.dataset.deck, i=st.cfg.decks.indexOf(c);
+    if(i<0) st.cfg.decks.push(c); else if(st.cfg.decks.length>1) st.cfg.decks.splice(i,1);
+    save(); deck=[]; idx=0; cur=null; qs=[]; qi=0; render(); return; }
+  const dir=e.target.closest("[data-dir]"); if(dir){ st.cfg.dir=dir.dataset.dir; save(); vCards(); return; }
+  const m=e.target.closest("[data-mode]"); if(m){ st.cfg.list = m.dataset.mode==="list"; save(); vCards(); return; }
+  const r=e.target.closest("[data-rate]"); if(r){ st.cfg.rate=+r.dataset.rate; save(); vSpeak(); return; }
+  const n=e.target.closest("[data-sh]"); if(n){ st.cfg.shadow=+n.dataset.sh; save(); vSpeak(); return; }
+  const nb=e.target.closest("[data-no]");
+  if(nb){ const [t,n]=nb.dataset.no.split(":");
+    st.mark[t] = (st.mark[t]===+n) ? 0 : +n; save();
+    (t==="G"?vGrammar:vSpeak)(); if(st.mark[t]) jumpTo(t); return; }
+  const jb=e.target.closest("[data-jump]"); if(jb){ jumpTo(jb.dataset.jump); return; }
+  const cm=e.target.closest("[data-clearmark]");
+  if(cm){ const t=cm.dataset.clearmark; st.mark[t]=0; save(); (t==="G"?vGrammar:vSpeak)(); return; }
+  if(e.target.closest("#examTag")){
+    const v = prompt("入試日を YYYY-MM-DD で入力してください", st.cfg.exam);
+    if(v && /^\d{4}-\d{2}-\d{2}$/.test(v)){ st.cfg.exam=v; save(); render(); }
+    return; }
+  const c2=e.target.closest("[data-sc]"); if(c2){ st._sc=c2.dataset.sc; st._sq=""; vSpeak(); return; }
+  const L=e.target.closest("[data-lv]");
+  if(L){ const n=+L.dataset.lv, i=st.cfg.lvs.indexOf(n);
+    if(i<0) st.cfg.lvs.push(n); else if(st.cfg.lvs.length>1) st.cfg.lvs.splice(i,1);
+    save(); deck=[]; idx=0; cur=null; qs=[]; qi=0; render(); return; }
+  const FU=e.target.closest("[data-furitoggle]");
+  if(FU){ st.cfg.furi=!st.cfg.furi; save(); applyFuri(); render(); return; }
+});
+document.addEventListener("keydown", e=>{
+  if(/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if(st.cfg.view==="cards" && !st.cfg.list){
+    if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); shown?0:flip(); return; }
+    if(shown && "123".includes(e.key)){ doGrade(+e.key); return; }
+    if(e.code==="ArrowLeft"||e.code==="Backspace"){ e.preventDefault(); go(-1); return; }
+    if(e.code==="ArrowRight"){ e.preventDefault(); go(1); return; }
+  }
+  if(e.key==="f"||e.key==="F"){ st.cfg.bar=!st.cfg.bar; save(); render(); return; }
+  if(st.cfg.view==="quiz"){
+    if(e.code==="ArrowLeft"){ e.preventDefault(); qGo(-1); return; }
+    if(e.code==="ArrowRight"||e.code==="Space"||e.code==="Enter"){ e.preventDefault(); qGo(1); return; }
+    if("1234".includes(e.key)){ const b=document.querySelector('[data-o="'+(+e.key-1)+'"]'); if(b) b.click(); } }
+});
+render();
+</script>
+<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));</script></body></html>
