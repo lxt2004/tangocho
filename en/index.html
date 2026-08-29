@@ -181,6 +181,39 @@ rt{font-family:var(--jp);font-size:.5em;font-weight:400;color:var(--ink3);letter
 .opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,var(--surface));color:var(--bad)}
 .opt .en{font-family:var(--en);font-size:18px}
 
+.streak{font-family:var(--mono);font-size:11.5px;color:var(--accent);
+  border:1px solid var(--accent);border-radius:999px;padding:2px 10px;white-space:nowrap;font-weight:600}
+.today-card{background:var(--raised);border:1px solid var(--rule);border-left:3px solid var(--accent);
+  border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);margin-bottom:8px}
+.today-card.done{border-left-color:var(--ok);background:color-mix(in srgb,var(--ok) 6%,var(--raised))}
+.today-l{font-size:12.5px;color:var(--ink3);letter-spacing:.08em}
+.today-n{font-family:var(--mono);font-size:44px;font-weight:600;line-height:1.1;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:2px}
+.today-n span{font-size:17px;font-weight:400;color:var(--ink3)}
+.today-msg{font-size:13px;color:var(--ink2);margin-top:10px}
+.cal{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0 4px}
+.cell{width:24px;height:24px;display:grid;place-items:center;border-radius:5px;
+  font-size:12px;border:1px solid var(--rule2)}
+.cell.d1{color:var(--ink3)}
+.cell.d2{color:var(--accent);border-color:var(--accent)}
+.cell.d3{color:var(--onAccent);background:var(--accent);border-color:var(--accent)}
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:9px;margin-top:10px}
+.badge-card{border:1px solid var(--rule);border-radius:10px;padding:11px 13px;background:var(--surface);opacity:.5}
+.badge-card.got{opacity:1;border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+.badge-n{font-family:var(--jp);font-weight:700;font-size:14px}
+.badge-card.got .badge-n{color:var(--accent)}
+.badge-d{font-size:11.5px;color:var(--ink3);margin-top:3px;line-height:1.5}
+.badge-s{font-family:var(--mono);font-size:9.5px;color:var(--ink3);margin-top:6px;letter-spacing:.06em}
+.badge-card.got .badge-s{color:var(--accent)}
+.cheer{text-align:center;padding:56px 20px}
+.cheer-big{font-family:var(--jp);font-size:30px;font-weight:700;color:var(--accent);
+  animation:pop .3s ease-out}
+.cheer-sub{font-family:var(--mono);font-size:15px;color:var(--ink2);margin-top:10px}
+.badge-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.badge{font-family:var(--jp);font-size:12px;border:1px solid var(--rule);border-radius:999px;padding:4px 12px;color:var(--ink3)}
+.badge.got{color:var(--onAccent);background:var(--accent);border-color:var(--accent);font-weight:700}
+.badge.big{font-size:14px;padding:7px 18px}
+@keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:2px 28px;margin:8px 0 30px}
 .stat{padding:14px 0;border-bottom:1px solid var(--rule2)}
 .stat-n{font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:-.02em;
@@ -1192,7 +1225,7 @@ const BOXES = [0,1,2,4,8,16,40];
 const MASTER = 4;
 
 const defState = {
-  srs:{}, log:{}, best:0, mark:{},
+  srs:{}, log:{}, best:0, mark:{}, clear:{}, quiz:{n:0,ok:0}, badges:{},
   cfg:{ rate:.9, goal:30, dir:"jp", decks:[], view:"cards", list:false, shadow:2, furi:true, lvs:[3,2], bar:false, autoNext:false, exam:"2027-02-10" }
 };
 let st = defState;
@@ -1254,6 +1287,37 @@ function spk(text,label){ return '<button class="speak" data-say="'+esc(text)+'"
 const RUBY=/([々ヶ一-鿿]+)[（(]([^）)]+)[）)]/g;
 function ruby(s){ if(!s) return "";
   return st.cfg.furi ? esc(s).replace(RUBY,(m,b,r)=>"<ruby>"+b+"<rt>"+r+"</rt></ruby>") : esc(strip(s)); }
+const dstrOf = i => new Date(Date.now()-i*DAY-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+function streakDays(){ let s=0;
+  for(let i=0;i<400;i++){ const d=dstrOf(i); if(st.log[d]) s++; else if(i>0) break; }
+  return s; }
+const clearDays  = () => Object.keys(st.clear||{}).length;
+const mastered   = arr => arr.filter(x=>{ const r=rec(x); return r && r[0]>=MASTER; }).length;
+const totalCards = () => Object.values(st.log).reduce((a,b)=>a+b,0);
+const BADGES = [
+  {id:"b1",  n:"はじめの一歩", d:"1日でも学習する",         f:()=>Object.keys(st.log).length>=1},
+  {id:"b3",  n:"三日つづいた", d:"3日 連続で学習",           f:()=>streakDays()>=3},
+  {id:"b7",  n:"一週間つづいた", d:"7日 連続で学習",         f:()=>streakDays()>=7},
+  {id:"b14", n:"二週間つづいた", d:"14日 連続で学習",        f:()=>streakDays()>=14},
+  {id:"b30", n:"一か月つづいた", d:"30日 連続で学習",        f:()=>streakDays()>=30},
+  {id:"b60", n:"二か月つづいた", d:"60日 連続で学習",        f:()=>streakDays()>=60},
+  {id:"c10", n:"ノルマ 10日",   d:"今日のノルマを 10日 達成", f:()=>clearDays()>=10},
+  {id:"c30", n:"ノルマ 30日",   d:"今日のノルマを 30日 達成", f:()=>clearDays()>=30},
+  {id:"c60", n:"ノルマ 60日",   d:"今日のノルマを 60日 達成", f:()=>clearDays()>=60},
+  {id:"w100",n:"100語 定着",    d:"単語を 100語 覚えきる",    f:()=>mastered(VOCAB)>=100},
+  {id:"w300",n:"300語 定着",    d:"単語を 300語 覚えきる",    f:()=>mastered(VOCAB)>=300},
+  {id:"w500",n:"500語 定着",    d:"単語を 500語 覚えきる",    f:()=>mastered(VOCAB)>=500},
+  {id:"p80", n:"熟語 80",       d:"熟語を 80 覚えきる",       f:()=>mastered(GRAM)>=80},
+  {id:"t1000",n:"のべ 1000枚",  d:"のべ 1000枚 めくる",       f:()=>totalCards()>=1000},
+  {id:"q80", n:"小テスト達人",  d:"50問以上で正答率 80%",     f:()=>st.quiz.n>=50 && st.quiz.ok/st.quiz.n>=.8},
+];
+function earnedIds(){                    // 一度取ったバッジは永久に保持する
+  let changed = false;
+  BADGES.forEach(b=>{ let ok=false; try{ ok=b.f(); }catch(e){}
+    if(ok && !st.badges[b.id]){ st.badges[b.id]=dstr(); changed=true; } });
+  if(changed) save();
+  return Object.keys(st.badges); }
+let justCleared = null;
 const plain = s => String(s||"").replace(/[（(][^）)]*[）)]/g,"");
 const LVN={3:"基礎",2:"標準",1:"発展"};
 const pill = it => '<span class="lv lv'+it.lv+'">'+LVN[it.lv]+'</span>';
@@ -1269,6 +1333,8 @@ function resumeBar(t){ const n = st.mark[t];
 function jumpTo(t){ const el = document.querySelector('[data-no="'+t+':'+st.mark[t]+'"]');
   if(el) el.closest(".row").scrollIntoView({block:"center"}); }
 function daysLeft(){ const d=Math.ceil((new Date(st.cfg.exam+"T00:00:00")-new Date())/864e5); return isNaN(d)?null:d; }
+function streakTag(){ const s=streakDays();
+  return s>0 ? '<span class="streak">連続 '+s+' 日</span>' : ""; }
 function countdown(){ const d=daysLeft();
   return d===null?"":'<span class="countdown" id="examTag" title="クリックで入試日を変更">入試まで あと '+
     (d>0?d+" 日":"—")+'</span>'; }
@@ -1320,11 +1386,25 @@ function vCards(){
     '<div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap">' +
     '<div class="seg"><button data-dir="jp" aria-pressed="'+(st.cfg.dir==="jp")+'">英→意味</button><button data-dir="zh" aria-pressed="'+(st.cfg.dir==="zh")+'">意味→英</button></div></div>',
     lvChips(),
-    countdown() + '<div class="seg"><button data-mode="card" aria-pressed="'+(!st.cfg.list)+'">カード</button><button data-mode="list" aria-pressed="'+(!!st.cfg.list)+'">一覧</button></div>');
+    streakTag() + countdown() + '<div class="seg"><button data-mode="card" aria-pressed="'+(!st.cfg.list)+'">カード</button><button data-mode="list" aria-pressed="'+(!!st.cfg.list)+'">一覧</button></div>');
 
   if(st.cfg.list){ listVocab(p); return; }
   if(!p.length){ $("#view").innerHTML='<div class="empty"><div class="big">対象が空です。</div>' +
     '<div class="note">デッキかレベルを選び直してください。</div></div>'; return; }
+  if(justCleared){
+    const j = justCleared;
+    $("#view").innerHTML = '<div class="cheer">' +
+      (j.badgeOnly ? '<div class="cheer-big">バッジ獲得！</div>'
+                   : '<div class="cheer-big">今日のノルマ達成！</div>' +
+                     '<div class="cheer-sub">'+j.n+' 枚 / 連続 '+j.streak+' 日</div>') +
+      (j.got && j.got.length ? '<div class="badge-row">' + j.got.map(b=>
+          '<span class="badge got big">'+esc(b.n)+'</span>').join("") + '</div>' : "") +
+      '<div class="empty-btns"><button class="chip" id="goOn">続ける</button>' +
+      '<button class="chip" id="goRec">記録を見る</button></div></div>';
+    $("#goOn").onclick = ()=>{ justCleared=null; vCards(); };
+    $("#goRec").onclick = ()=>{ justCleared=null; setView("stats"); };
+    return;
+  }
   if(!deck.length) buildQueue();
   syncCur();
   if(!cur){                                    // 一巡やり切った（デッキは「前へ」用に残す）
@@ -1366,7 +1446,9 @@ function vCards(){
      ' title="採点せずに一つ前を見る">← 前へ<b><kbd>←</kbd></b></button>' +
    '<button class="nav" id="nextBtn"'+(idx<deck.length?"":" disabled")+
      ' title="採点せずに次を見る">次へ →<b><kbd>→</kbd></b></button>' +
-   '<span class="note">今日 '+done+' / 目標 '+st.cfg.goal+' 枚</span></div>';
+   '<span class="note">'+(done>=st.cfg.goal
+       ? '今日のノルマ達成 ✓　'+done+' 枚'
+       : '今日 '+done+' / '+st.cfg.goal+' 枚　あと '+(st.cfg.goal-done)+' 枚')+'</span></div>';
 
   if(!shown) $(".card").onclick = flip;
   document.querySelectorAll("[data-flip]").forEach(b=>b.onclick=flip);
@@ -1393,8 +1475,18 @@ function doGrade(g){
     m = { rec: st.srs[k] ? st.srs[k].slice() : null };
     marks.set(cur, m);
   }
+  const e0 = earnedIds();
   grade(cur, g);
   m.g = g; m.day = dstr();
+  const d0 = dstr();
+  if(!st.clear[d0] && (st.log[d0]||0) >= st.cfg.goal){
+    st.clear[d0] = true;
+    justCleared = { n: st.log[d0], streak: streakDays(),
+                    got: BADGES.filter(b=>earnedIds().includes(b.id) && !e0.includes(b.id)) };
+  } else {
+    const nb = BADGES.filter(b=>earnedIds().includes(b.id) && !e0.includes(b.id));
+    if(nb.length) justCleared = { badgeOnly:true, got:nb };
+  }
   if(g===1) deck.push(cur);
   const v = Object.values(st.log); st.best = v.length ? Math.max(...v) : 0;
   save();
@@ -1519,7 +1611,7 @@ function vQuiz(){
     '<div class="card"><div class="tag">'+pill(it)+' '+esc(q.tip)+
       '<span style="margin-left:auto">Q'+(qi+1)+' / '+qs.length+'</span></div>' +
     '<div class="q'+(q.q.length>16?" small":"")+'" '+(q.en?'style="font-family:var(--en)"':'style="font-family:var(--ui)"')+'>'+esc(q.q)+'</div>' +
-    (q.zhq?'<div class="ex-zh" style="margin-top:8px">'+esc(q.zhq)+'</div>':"") + '</div>' +
+    (q.zhq?'<div class="row-zh" style="margin-top:8px;font-size:14.5px">'+esc(q.zhq)+'</div>':"") + '</div>' +
     '<div class="opts">'+q.opts.map((o,i)=>{
       let cls = "opt";
       if(q._done){ if(o.ok) cls += " right"; else if(i===q.picked) cls += " wrong"; }
@@ -1542,6 +1634,7 @@ function answer(i){
   const q = curQ(); if(!q || q._done) return;
   q._done = true; q.picked = i;
   const ok = q.opts[i].ok; quizN++; if(ok) quizOK++;
+  st.quiz.n++; if(ok) st.quiz.ok++;
   grade(q.it, ok?3:1); save();
   vQuiz();
   if(q.it.ex) say(q.it.ex);
@@ -1561,7 +1654,7 @@ function vStats(){
   for(let i=0;i<400;i++){ const d=new Date(Date.now()-i*DAY-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
     if(st.log[d]) streak++; else if(i>0) break; }
   const rows = [
-    ["単語", VOCAB, v=>"V:"+v.w], ["文法", GRAM, g=>"G:"+g.p], ["会話", SPK, s=>"S:"+s.jp]
+    ["単語", VOCAB, v=>"V:"+v.w], ["熟語", GRAM, g=>"G:"+g.p], ["例文", SPK, s=>"S:"+s.jp]
   ].map(([n,arr,k])=>{
     const seen = arr.filter(x=>st.srs[k(x)]).length;
     const m = arr.filter(x=>st.srs[k(x)] && st.srs[k(x)][0]>=MASTER).length;
@@ -1570,16 +1663,39 @@ function vStats(){
   const cats = VCATS.map(c=>{ const a=VOCAB.filter(v=>v.cat===c);
     const m=a.filter(v=>st.srs["V:"+v.w]&&st.srs["V:"+v.w][0]>=MASTER).length;
     return '<tr><td>'+esc(c)+'</td><td class="n">'+a.length+'</td><td class="n">'+m+'</td><td class="n">'+Math.round(m/a.length*100)+'%</td></tr>'; }).join("");
+  const g = st.cfg.goal, todayN = st.log[t]||0, cleared = !!st.clear[t];
+  // 直近30日：◎=ノルマ達成 ○=学習した ・=なし
+  let cal="";
+  for(let i=29;i>=0;i--){ const d=dstrOf(i), n=st.log[d]||0;
+    const cls = st.clear[d] ? "d3" : n>0 ? "d2" : "d1";
+    const mk  = st.clear[d] ? "◎" : n>0 ? "○" : "・";
+    cal += '<span class="cell '+cls+'" title="'+d+'　'+n+' 枚">'+mk+'</span>'; }
+  const eids = earnedIds();
+  const badges = BADGES.map(b=>{ const got = eids.includes(b.id);
+    return '<div class="badge-card'+(got?" got":"")+'"><div class="badge-n">'+esc(b.n)+'</div>' +
+      '<div class="badge-d">'+esc(b.d)+'</div>' +
+      '<div class="badge-s">'+(got?"獲得 "+st.badges[b.id]:"未獲得")+'</div></div>'; }).join("");
   $("#view").innerHTML =
+   '<div class="today-card'+(cleared?" done":"")+'">' +
+     '<div class="today-l">今日のノルマ</div>' +
+     '<div class="today-n">'+todayN+' <span>/ '+g+' 枚</span></div>' +
+     '<div class="progress-line"><i style="width:'+Math.min(100,todayN/g*100)+'%"></i></div>' +
+     '<div class="today-msg">'+(cleared ? '達成 ✓　この調子で続けよう'
+        : 'あと '+(g-todayN)+' 枚。連続 '+streak+' 日を切らさないように。')+'</div></div>' +
+   '<div class="group-head">この30日<span>◎ ノルマ達成　○ 学習　・ なし</span></div>' +
+   '<div class="cal">'+cal+'</div>' +
+   '<div class="group-head">バッジ<span>'+eids.length+' / '+BADGES.length+'</span></div>' +
+   '<div class="badge-grid">'+badges+'</div>' +
+   '<div class="group-head">数字で見る</div>' +
    '<div class="stat-grid">' +
-   ['<div class="stat"><div class="stat-n">'+(st.log[t]||0)+'</div><div class="stat-l">今日めくった枚数</div></div>',
+   ['<div class="stat"><div class="stat-n">'+clearDays()+'</div><div class="stat-l">ノルマ達成した日数</div></div>',
     '<div class="stat"><div class="stat-n">'+streak+'</div><div class="stat-l">連続学習日数</div></div>',
     '<div class="stat"><div class="stat-n">'+mastered+'</div><div class="stat-l">定着（BOX4 以上）</div></div>',
     '<div class="stat"><div class="stat-n">'+all+'</div><div class="stat-l">学習した項目</div></div>',
     '<div class="stat"><div class="stat-n">'+total+'</div><div class="stat-l">累計めくった枚数</div></div>',
     '<div class="stat"><div class="stat-n">'+dueTom+'</div><div class="stat-l">明日までの復習</div></div>'].join("") + '</div>' +
    '<div class="group-head">レベル別（目安）</div><div class="tbl-wrap"><table><thead><tr><th>レベル</th><th style="text-align:right">項目</th><th style="text-align:right">学習</th><th style="text-align:right">定着</th></tr></thead><tbody>'+
-   [[3,"N3 以下"],[2,"N2"],[1,"N1"]].map(x=>{
+   [[3,"基礎"],[2,"標準"],[1,"発展"]].map(x=>{
      const all=[...VOCAB,...GRAM,...SPK].filter(o=>o.lv===x[0]);
      const seen=all.filter(o=>rec(o)).length, m=all.filter(o=>rec(o)&&rec(o)[0]>=MASTER).length;
      return '<tr><td><span class="lv lv'+x[0]+'">'+LVN[x[0]]+'</span> '+x[1]+'</td><td class="n">'+all.length+
