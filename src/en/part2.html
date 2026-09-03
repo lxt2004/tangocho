@@ -37,7 +37,7 @@ const BOXES = [0,1,2,4,8,16,40];
 const MASTER = 4;
 
 const defState = {
-  srs:{}, log:{}, best:0, mark:{}, clear:{}, quiz:{n:0,ok:0}, badges:{},
+  srs:{}, log:{}, best:0, mark:{}, clear:{}, quiz:{n:0,ok:0}, badges:{}, session:null,
   cfg:{ rate:.9, goal:30, dir:"jp", decks:[], view:"cards", list:false, shadow:2, reps:5, furi:true, lvs:[3,2], bar:false, autoNext:false, exam:"2027-02-10" }
 };
 let st = defState;
@@ -196,12 +196,50 @@ function head(title, sub, tools, tools2, quick){
 
 /* ---- 単語 ---- */
 function pool(){ return VOCAB.filter(v=>st.cfg.decks.includes(v.cat) && lvOK(v)); }
+/* 絞り込み後の並びでの通し番号(1 始まり)。0 なら見つからない */
+const noOf = (p,it) => p.indexOf(it) + 1;
+
+/* ---- 前回の続きから ----
+   山札(deck)は毎回組み直す作りだったので、アプリを閉じると必ず先頭に戻っていた。
+   山札の中身と位置を保存し、絞り込み条件が同じなら次に開いたとき復元する。 */
+const sameSet = (a,b) => a.length===b.length &&
+  a.map(String).sort().join("|") === b.map(String).sort().join("|");
+
+function saveSession(){
+  st.session = { keys: deck.map(key), i: idx,
+                 decks: st.cfg.decks.slice(), lvs: st.cfg.lvs.slice() };
+  save(); }
+
+function restoreSession(){
+  const s = st.session;
+  if(!s || !Array.isArray(s.keys) || !s.keys.length) return false;
+  // 絞り込みを変えたあとの山札は噛み合わないので作り直す
+  if(!sameSet(s.decks||[], st.cfg.decks) || !sameSet(s.lvs||[], st.cfg.lvs)) return false;
+  const byKey = new Map(VOCAB.map(v=>[key(v), v]));
+  const d = s.keys.map(k=>byKey.get(k)).filter(Boolean);
+  if(!d.length) return false;
+  const i = Math.max(0, s.i|0);
+  if(i >= d.length) return false;      // 前回やり切っていた → 次の分を組む
+  deck = d; idx = Math.min(i, d.length-1);
+  marks = new Map(); shown = false; syncCur();
+  return true; }
+
+/* 絞り込み後の並び順で n 番目(1 始まり)から、目標枚数ぶんを順番に出す */
+function startFrom(n){
+  const p = pool();
+  if(!p.length) return;
+  const s0 = Math.min(Math.max(0, n-1), p.length-1);
+  deck = p.slice(s0, s0 + Math.max(1, st.cfg.goal));
+  idx = 0; marks = new Map(); shown = false; syncCur();
+  st.cfg.list = false; saveSession(); vCards(); }
+
 function buildQueue(){
   const p = pool();
   const due = shuffle(p.filter(isDue));
   const fresh = p.filter(isNew);
   deck = due.concat(fresh.slice(0, Math.max(0, st.cfg.goal - due.length)));
   idx = 0; marks = new Map(); shown = false; syncCur();
+  saveSession();
 }
 function deckChips(){
   return '<div class="chips">' + VCATS.map(c=>{
@@ -218,6 +256,7 @@ function vCards(){
   head("単語", (st.cfg.list?"一覧 ":"") + p.length + " 語 / 復習 " + dueN + " / 未学習 " + newN + " / 今日 " + done,
     deckChips() +
     '<div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap">' +
+    '<div class="filt" title="全体の何番目から始めるか">#<input class="field" id="jumpNo" type="number" min="1" max="'+p.length+'" placeholder="'+(noOf(p,cur)||1)+'" style="width:6em;padding:4px 8px;margin:0 6px"><button class="chip" data-jumpno="1">から始める</button></div>' +
     '<div class="seg" title="発音をくり返す回数">'+[1,3,5,8].map(n=>'<button data-reps="'+n+'" aria-pressed="'+(st.cfg.reps===n)+'">'+n+'回</button>').join("")+'</div>' +
     '<div class="seg"><button data-dir="jp" aria-pressed="'+(st.cfg.dir==="jp")+'">英→意味</button><button data-dir="zh" aria-pressed="'+(st.cfg.dir==="zh")+'">意味→英</button></div></div>',
     lvChips(),
@@ -240,7 +279,7 @@ function vCards(){
     $("#goRec").onclick = ()=>{ justCleared=null; setView("stats"); };
     return;
   }
-  if(!deck.length) buildQueue();
+  if(!deck.length && !restoreSession()) buildQueue();
   syncCur();
   if(!cur){                                    // 一巡やり切った（デッキは「前へ」用に残す）
     const done2 = deck.length;
@@ -253,7 +292,7 @@ function vCards(){
       '<button class="chip" id="freeBtn">ランダムに 20 語</button></div></div>';
     if(done2) $("#prevBtn").onclick = ()=>{ idx=deck.length-1; shown=true; syncCur(); vCards(); };
     $("#moreBtn").onclick = ()=>{ buildQueue(); vCards(); };
-    $("#freeBtn").onclick = ()=>{ deck = shuffle(p).slice(0,20); idx=0; marks=new Map(); shown=false; syncCur(); vCards(); };
+    $("#freeBtn").onclick = ()=>{ deck = shuffle(p).slice(0,20); idx=0; marks=new Map(); shown=false; syncCur(); saveSession(); vCards(); };
     return;
   }
   const r = rec(cur) || [0,0];
@@ -262,7 +301,8 @@ function vCards(){
   $("#view").innerHTML =
    '<div class="card"><div class="tag"><span class="box-dot" style="opacity:'+(.3+r[0]*.12)+'"></span>' + pill(cur) + ' ' +
      esc(cur.cat) + (marks.get(cur)&&marks.get(cur).g ? ' <span class="done-mark">採点済み '+GN[marks.get(cur).g]+'</span>' : '') +
-     ' <span style="margin-left:auto">BOX ' + r[0] + (r[0]>=MASTER?" · 定着":"") + ' · ' + (idx+1) + ' / ' + deck.length + '</span></div>' +
+     ' <span style="margin-left:auto">BOX ' + r[0] + (r[0]>=MASTER?" · 定着":"") + ' · ' + (idx+1) + ' / ' + deck.length +
+       (noOf(p,cur) ? ' · 全体 #' + noOf(p,cur) : '') + '</span></div>' +
    '<div class="q'+(long?" small":"")+'" '+(st.cfg.dir==="zh"?'style="font-family:var(--ui)"':'style="font-family:var(--en)"')+'>'+front+'</div>' +
    (shown ? '<div class="reveal">' +
      (st.cfg.dir==="jp" ? '<div class="reading">'+ruby(cur.r)+'</div><div class="mean zh">'+esc(cur.c)+'</div>'
@@ -298,7 +338,7 @@ function go(d){                       // 採点せずに移動するだけ
   const n = idx + d;
   if(n < 0 || n > deck.length) return;
   stopSay();                          // 前のカードの連続再生を止める
-  idx = n; shown = false; syncCur(); vCards(); }
+  idx = n; shown = false; syncCur(); saveSession(); vCards(); }
 function doGrade(g){
   if(!cur) return;
   stopSay();
@@ -326,8 +366,9 @@ function doGrade(g){
   }
   if(g===1) deck.push(cur);
   const v = Object.values(st.log); st.best = v.length ? Math.max(...v) : 0;
-  save();
-  idx++; shown=false; syncCur(); vCards(); }
+  idx++; shown=false; syncCur();
+  saveSession();                      // 採点で山札も位置も変わるので保存する
+  vCards(); }
 function listVocab(p){
   const q = (st._q||"").trim();
   const ql=q.toLowerCase();
@@ -343,7 +384,8 @@ function listVocab(p){
       '<div class="row-zh">'+ruby(v.r)+'　'+esc(v.c)+'</div>' +
       '<div class="row-en" style="font-size:15px;margin-top:7px;color:var(--ink2)">'+esc(v.ex)+'</div>' +
       '<div class="row-meta">'+ruby(v.exc)+(r?' · BOX '+r[0]:' · 未学習')+'</div></div>' +
-      '<div class="row-side">'+pill(v)+spk(v.w,"語")+spk(v.ex,"例")+'</div></div>';
+      '<div class="row-side">'+pill(v)+spk(v.w,"語")+spk(v.ex,"例")+
+      '<button class="chip" data-from="'+esc(v.w)+'" title="この語からカードを始める">ここから</button></div></div>';
   }).join("") || '<div class="empty">該当なし</div>';
   $("#view").innerHTML = html;
   const inp=$("#q"); inp.oninput = ()=>{ st._q=inp.value; const s=inp.selectionStart;
@@ -572,6 +614,12 @@ document.addEventListener("click", e=>{
     save(); deck=[]; idx=0; cur=null; qs=[]; qi=0; render(); return; }
   const dir=e.target.closest("[data-dir]"); if(dir){ st.cfg.dir=dir.dataset.dir; save(); vCards(); return; }
   const m=e.target.closest("[data-mode]"); if(m){ st.cfg.list = m.dataset.mode==="list"; save(); vCards(); return; }
+  const jn=e.target.closest("[data-jumpno]");
+  if(jn){ const el=$("#jumpNo"), n=parseInt(el&&el.value,10);
+    if(n>0) startFrom(n); return; }
+  const fr=e.target.closest("[data-from]");
+  if(fr){ const w=fr.dataset.from, i=pool().findIndex(x=>x.w===w);
+    if(i>=0) startFrom(i+1); return; }
   const rp=e.target.closest("[data-reps]"); if(rp){ st.cfg.reps=+rp.dataset.reps; save(); vCards(); return; }
   const r=e.target.closest("[data-rate]"); if(r){ st.cfg.rate=+r.dataset.rate; save(); vSpeak(); return; }
   const n=e.target.closest("[data-sh]"); if(n){ st.cfg.shadow=+n.dataset.sh; save(); vSpeak(); return; }
