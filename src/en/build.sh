@@ -38,7 +38,7 @@ DIST=../../en
 if [ -d "$DIST" ]; then
 { printf '%s' '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="英単語ノート"><meta name="theme-color" content="#0F7A6B"><link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./apple-touch-icon.png"><link rel="icon" href="./icon-192.png">'
   cat part1.html; printf '%s' '</head><body>'; cat body.html
-  printf '%s' '<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));</script></body></html>'
+  printf '%s' '<script>if("serviceWorker" in navigator)addEventListener("load",()=>{var had=!!navigator.serviceWorker.controller;navigator.serviceWorker.register("./sw.js").catch(function(){});navigator.serviceWorker.addEventListener("controllerchange",function(){if(had&&window.__newVer)window.__newVer()})});</script></body></html>'
 } > $DIST/index.html
 echo "dist: $DIST/index.html"
 fi

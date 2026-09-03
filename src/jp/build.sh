@@ -73,7 +73,7 @@ cat part1.html body.html > app.html
 OUT=../..
 { printf '%s' '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="藍の単語帳"><meta name="theme-color" content="#1B3A66"><link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./apple-touch-icon.png"><link rel="icon" href="./icon-192.png">'
   cat part1.html; printf '%s' '</head><body>'; cat body.html
-  printf '%s' '<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));</script></body></html>'
+  printf '%s' '<script>if("serviceWorker" in navigator)addEventListener("load",()=>{var had=!!navigator.serviceWorker.controller;navigator.serviceWorker.register("./sw.js").catch(function(){});navigator.serviceWorker.addEventListener("controllerchange",function(){if(had&&window.__newVer)window.__newVer()})});</script></body></html>'
 } > $OUT/index.html
 
 echo "built: $(grep -c '^[VW]\.push' data.js) vocab / $(grep -c '^G\.push' data.js) grammar / $(grep -c '^S\.push' data.js) speak"
