@@ -1239,7 +1239,7 @@ const MASTER = 4;
 
 const defState = {
   srs:{}, log:{}, best:0, mark:{}, clear:{}, quiz:{n:0,ok:0}, badges:{},
-  cfg:{ rate:.9, goal:30, dir:"jp", decks:[], view:"cards", list:false, shadow:2, furi:true, lvs:[3,2], bar:false, autoNext:false, exam:"2027-02-10" }
+  cfg:{ rate:.9, goal:30, dir:"jp", decks:[], view:"cards", list:false, shadow:2, reps:5, furi:true, lvs:[3,2], bar:false, autoNext:false, exam:"2027-02-10" }
 };
 let st = defState;
 try{ const r = localStorage.getItem(LS); if(r) st = deepMerge(defState, JSON.parse(r)); }catch(e){}
@@ -1283,12 +1283,33 @@ function loadVoices(){ try{ const v=speechSynthesis.getVoices();
 if("speechSynthesis" in window){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
 function utter(t,rate){ const u=new SpeechSynthesisUtterance(t); u.lang="en-US";
   if(jvoice) u.voice=jvoice; u.rate = rate ?? st.cfg.rate; return u; }
-function say(t,rate){ if(!("speechSynthesis" in window)) return;
-  clearTimeout(shadowT); speechSynthesis.cancel(); speechSynthesis.speak(utter(t,rate)); }
+const SAY_GAP = 700;   // 連続再生の間隔(ms)。半秒〜1秒が聞き取りやすい
+
+/* 再生の世代番号。cancel() は onend を発火させることがあり、
+   そのまま次を予約すると止めたはずの音が鳴り続ける。
+   世代が変わったら古い予約は捨てる。 */
+let sayGen = 0;
+function stopSay(){ sayGen++; clearTimeout(shadowT);
+  try{ speechSynthesis.cancel(); }catch(e){} }
+
+/* 単語・例文の発音。既定で st.cfg.reps 回くり返す。 */
+function say(t,rate,times){ if(!("speechSynthesis" in window)) return;
+  stopSay();
+  const gen = sayGen, n = Math.max(1, times ?? st.cfg.reps ?? 1);
+  let i = 0;
+  const step=()=>{ if(gen !== sayGen || i++ >= n) return;
+    const u = utter(t,rate);
+    u.onend = ()=>{ if(gen === sayGen) shadowT = setTimeout(step, SAY_GAP); };
+    speechSynthesis.speak(u); };
+  step(); }
+
+/* 音読(シャドーイング)。自分で復唱するぶん間隔を長めに取る。 */
 function shadowing(t,times){ if(!("speechSynthesis" in window)) return;
-  clearTimeout(shadowT); speechSynthesis.cancel(); let i=0;
-  const step=()=>{ if(i++>=times) return; const u=utter(t);
-    u.onend=()=>{ shadowT=setTimeout(step, 700 + t.length*95); }; speechSynthesis.speak(u); };
+  stopSay();
+  const gen = sayGen; let i=0;
+  const step=()=>{ if(gen !== sayGen || i++ >= times) return; const u=utter(t);
+    u.onend=()=>{ if(gen === sayGen) shadowT=setTimeout(step, 700 + t.length*95); };
+    speechSynthesis.speak(u); };
   step(); }
 const strip = s => s.replace(/[（(][^）)]*[）)]/g,"");
 
@@ -1296,7 +1317,8 @@ const strip = s => s.replace(/[（(][^）)]*[）)]/g,"");
 const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const el = h => { const d=document.createElement("div"); d.innerHTML=h.trim(); return d.firstElementChild; };
 const $  = s => document.querySelector(s);
-function spk(text,label){ return '<button class="speak" data-say="'+esc(text)+'">◗ '+(label||"音声")+'</button>'; }
+function spk(text,label,showN){ const n = st.cfg.reps||1;
+  return '<button class="speak" data-say="'+esc(text)+'">◗ '+(label||"音声")+(showN&&n>1?' ×'+n:'')+'</button>'; }
 const RUBY=/([々ヶ一-鿿]+)[（(]([^）)]+)[）)]/g;
 function ruby(s){ if(!s) return "";
   return st.cfg.furi ? esc(s).replace(RUBY,(m,b,r)=>"<ruby>"+b+"<rt>"+r+"</rt></ruby>") : esc(strip(s)); }
@@ -1357,7 +1379,7 @@ function applyFuri(){ document.documentElement.setAttribute("data-furi", st.cfg.
 let deck=[], idx=0, cur=null, shown=false, marks=new Map(), qs=[], qi=0, quizN=0, quizOK=0;
 const syncCur = ()=>{ cur = deck[idx] || null; };
 
-function setView(v){ st.cfg.view=v; save(); render(); }
+function setView(v){ stopSay(); st.cfg.view=v; save(); render(); }
 function render(){
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected", t.dataset.view===st.cfg.view));
   ({cards:vCards, grammar:vGrammar, speak:vSpeak, quiz:vQuiz, stats:vStats})[st.cfg.view]();
@@ -1397,6 +1419,7 @@ function vCards(){
   head("単語", (st.cfg.list?"一覧 ":"") + p.length + " 語 / 復習 " + dueN + " / 未学習 " + newN + " / 今日 " + done,
     deckChips() +
     '<div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap">' +
+    '<div class="seg" title="発音をくり返す回数">'+[1,3,5,8].map(n=>'<button data-reps="'+n+'" aria-pressed="'+(st.cfg.reps===n)+'">'+n+'回</button>').join("")+'</div>' +
     '<div class="seg"><button data-dir="jp" aria-pressed="'+(st.cfg.dir==="jp")+'">英→意味</button><button data-dir="zh" aria-pressed="'+(st.cfg.dir==="zh")+'">意味→英</button></div></div>',
     lvChips(),
     streakTag() + countdown() + '<div class="seg"><button data-mode="card" aria-pressed="'+(!st.cfg.list)+'">カード</button><button data-mode="list" aria-pressed="'+(!!st.cfg.list)+'">一覧</button></div>');
@@ -1446,7 +1469,7 @@ function vCards(){
      (st.cfg.dir==="jp" ? '<div class="reading">'+ruby(cur.r)+'</div><div class="mean zh">'+esc(cur.c)+'</div>'
                         : '<div class="reading" style="font-family:var(--en);font-size:34px;color:var(--ink);letter-spacing:-.01em">'+esc(cur.w)+'</div>') +
      '<div class="ex"><div class="ex-en">'+esc(cur.ex)+'</div><div class="ex-jp" style="margin-top:6px">'+ruby(cur.exc)+'</div>' +
-     '<div style="margin-top:12px;display:flex;gap:8px">'+spk(cur.w,"単語")+spk(cur.ex,"例文")+'</div></div></div>'
+     '<div style="margin-top:12px;display:flex;gap:8px">'+spk(cur.w,"単語",1)+spk(cur.ex,"例文",1)+'</div></div></div>'
      : '<div class="hint">タップ / <kbd>Space</kbd> でめくる　→　めくると <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> で採点</div>') +
    '</div>' +
    (shown ? '<div class="grade">' +
@@ -1475,9 +1498,11 @@ const GN = {1:"忘れた", 2:"あいまい", 3:"覚えた"};
 function go(d){                       // 採点せずに移動するだけ
   const n = idx + d;
   if(n < 0 || n > deck.length) return;
+  stopSay();                          // 前のカードの連続再生を止める
   idx = n; shown = false; syncCur(); vCards(); }
 function doGrade(g){
   if(!cur) return;
+  stopSay();
   const k = key(cur);
   let m = marks.get(cur);
   if(m){                              // このセッションで採点済み → 前回分を取り消す
@@ -1608,6 +1633,7 @@ function mkQ(){
 }
 const curQ = ()=> qs[qi] || null;
 function qGo(d){
+  stopSay();                          // 前の問題の連続再生を止める
   if(d < 0){ if(qi>0){ qi--; vQuiz(); } return; }
   if(qi < qs.length-1){ qi++; }
   else { const nq = mkQ(); if(!nq) return; qs.push(nq); qi = qs.length-1;
@@ -1747,6 +1773,7 @@ document.addEventListener("click", e=>{
     save(); deck=[]; idx=0; cur=null; qs=[]; qi=0; render(); return; }
   const dir=e.target.closest("[data-dir]"); if(dir){ st.cfg.dir=dir.dataset.dir; save(); vCards(); return; }
   const m=e.target.closest("[data-mode]"); if(m){ st.cfg.list = m.dataset.mode==="list"; save(); vCards(); return; }
+  const rp=e.target.closest("[data-reps]"); if(rp){ st.cfg.reps=+rp.dataset.reps; save(); vCards(); return; }
   const r=e.target.closest("[data-rate]"); if(r){ st.cfg.rate=+r.dataset.rate; save(); vSpeak(); return; }
   const n=e.target.closest("[data-sh]"); if(n){ st.cfg.shadow=+n.dataset.sh; save(); vSpeak(); return; }
   const nb=e.target.closest("[data-no]");
