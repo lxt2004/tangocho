@@ -125,6 +125,14 @@ h1{font-family:var(--jp);font-weight:600;font-size:1.3125rem;margin:0;letter-spa
 .ex-jp{font-family:var(--jp);font-size:1.25rem;line-height:1.75}
 .ex-zh{font-family:"Noto Sans SC",var(--ui);font-size:0.9062rem;color:var(--ink2);margin-top:5px}
 .hint{margin-top:16px;font-size:0.7812rem;color:var(--ink3);font-family:var(--mono)}
+/* 文法カードの「接続」・会話カードの注釈 */
+.conn{margin-top:12px;padding:8px 12px;border-left:2px solid var(--rule);
+  font-size:0.8125rem;color:var(--ink2);background:var(--surface);border-radius:0 7px 7px 0}
+/* 会話カードの本文。1 文まるごとなので単語より小さく、行間を広く */
+.q.spk-q{font-size:clamp(1.3rem,4.2vw,1.95rem);line-height:1.75;font-weight:500}
+[data-furi="on"] .q.spk-q{line-height:2.1}
+.no-tag{font-family:var(--mono);font-size:0.625rem;color:var(--accent);
+  border:1px solid var(--accent);border-radius:3px;padding:0 5px}
 .lapse{font-family:var(--mono);font-size:0.625rem;color:var(--bad);
   border:1px solid var(--bad);border-radius:3px;padding:0 5px}
 /* 対になる自動詞／他動詞。片方だけ覚えても使えないので並べて出す */

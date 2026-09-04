@@ -45,8 +45,11 @@ const defState = {
   qlog:{},       /* 日付 -> 小試験の解答数（ノルマには入れない） */
   best:0, mark:{}, clear:{}, quiz:{n:0,ok:0}, badges:{}, session:null,
   miss:null,     /* {d:"YYYY-MM-DD", keys:[...]} 今日まちがえた項目 */
+  sessions:{},   /* 種類(V/G/S)ごとの「前回の続き」 */
   kv:0,          /* 記録キーの版。移行判定に使う */
-  cfg:{ rate:.9, goal:30, dir:"jp", decks:[], view:"cards", list:false, shadow:2, reps:5,
+  cfg:{ rate:.9, goal:30, dir:"jp", decks:[], view:"cards", shadow:2, reps:5,
+        list:false, glist:false, slist:false,   /* 一覧表示かどうか（種類ごと） */
+        gc:"", sc:"",                           /* 文法・会話の分類の絞り込み（"" = すべて） */
         furi:true, lvs:[3,2,1], bar:false, autoNext:false, hard:false, qmode:"mix",
         exam:"2026-12-06" }
 };
@@ -86,6 +89,10 @@ if(!st.cfg.decks.length) st.cfg.decks = [...VCATS];
 /* 語彙のキーに よみ も入れる。表記だけだと 表(おもて/ひょう) のような
    同形異音語を足した瞬間に記録が 1 本に混ざる。 */
 const key = it => it._t + ":" + (it._t === "V" ? it.w + "/" + it.r : (it.p || it.jp));
+if(st.session && !st.sessions.V){    // 単語だけだった時代の「続き」を引き継ぐ
+  st.sessions.V = { keys: st.session.keys, i: st.session.i, sig: null };
+  st.session = null; save();
+}
 if((st.kv|0) < 2){                    // "V:表記" -> "V:表記/よみ"
   VOCAB.forEach(v=>{ const o = "V:" + v.w, n = key(v);
     if(o !== n && st.srs[o]){ if(!st.srs[n]) st.srs[n] = st.srs[o]; delete st.srs[o]; } });
@@ -132,7 +139,7 @@ function missAdd(k){ const d = dstr();
   if(!st.miss || st.miss.d !== d) st.miss = { d, keys:[] };
   if(!st.miss.keys.includes(k)) st.miss.keys.push(k); }
 const missKeys  = () => (st.miss && st.miss.d === dstr()) ? st.miss.keys : [];
-const missItems = () => { const s = new Set(missKeys()); return VOCAB.filter(v=>s.has(key(v))); };
+const missItems = () => { const s = new Set(missKeys()); return poolOf(CT()).filter(v=>s.has(key(v))); };
 const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 
 /* ============ tts ============ */
@@ -257,9 +264,20 @@ function applyFuri(){ document.documentElement.setAttribute("data-furi", st.cfg.
 let deck=[], idx=0, cur=null, shown=false, marks=new Map(), qs=[], qi=0, quizN=0, quizOK=0;
 const syncCur = ()=>{ cur = deck[idx] || null; };
 
+/* カード画面は 単語 / 文法 / 会話 の 3 つある。山札は 1 組だけ持ち、
+   種類が変わったら作り直す。「前回の続き」は種類ごとに st.sessions に残す。 */
+const MODES = { cards:"V", grammar:"G", speak:"S" };
+const CT  = () => MODES[st.cfg.view] || "V";
+const ARR = t => t==="G" ? GRAM : t==="S" ? SPK : VOCAB;
+const MNAME = { V:"単語", G:"文法", S:"会話" };
+let curMode = null;                 // いま山札に載っている種類
+
 function setView(v){ stopSay(); st.cfg.view=v; save(); render();
   const el = $("#view"); if(el) el.focus({preventScroll:true}); }
 function render(){
+  const t = CT();
+  if(curMode !== t){        // 種類が変わった → 山札を捨てる（位置は保存済み）
+    curMode = t; deck=[]; idx=0; cur=null; shown=false; marks=new Map(); }
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected", t.dataset.view===st.cfg.view));
   ({cards:vCards, grammar:vGrammar, speak:vSpeak, quiz:vQuiz, stats:vStats})[st.cfg.view]();
 }
@@ -278,9 +296,15 @@ function head(title, sub, tools, tools2, quick){
 /* 忘れた回数がこれ以上なら「苦手」。何度も落とす語だけを拾えるようにする。 */
 const HARD = 2;
 const isHard = it => { const r = rec(it); return r && (r[2]|0) >= HARD; };
-const hardCount = () => VOCAB.filter(v=>st.cfg.decks.includes(v.cat) && lvOK(v) && isHard(v)).length;
-function pool(){ const p = VOCAB.filter(v=>st.cfg.decks.includes(v.cat) && lvOK(v));
+const hardCount = () => { const h = st.cfg.hard; st.cfg.hard = false;
+  const n = poolOf(CT()).filter(isHard).length; st.cfg.hard = h; return n; };
+function poolOf(t){
+  let p = ARR(t).filter(lvOK);
+  if(t==="V") p = p.filter(v=>st.cfg.decks.includes(v.cat));
+  else if(t==="G" && st.cfg.gc) p = p.filter(g=>g.cat===st.cfg.gc);
+  else if(t==="S" && st.cfg.sc) p = p.filter(x=>x.cat===st.cfg.sc);
   return st.cfg.hard ? p.filter(isHard) : p; }
+function pool(){ return poolOf(CT()); }
 
 /* ---- 自他ペア ----
    自動詞と他動詞は一方だけ覚えても使えない。相方を並べて出せるように
@@ -324,18 +348,22 @@ const noOf = (p,it) => p.indexOf(it) + 1;
 const sameSet = (a,b) => a.length===b.length &&
   a.map(String).sort().join("|") === b.map(String).sort().join("|");
 
+/* 絞り込みが変わると山札が噛み合わない。条件をまとめて 1 本の文字列にして比べる。 */
+function filterSig(t){
+  return [t, st.cfg.lvs.slice().sort().join(","), st.cfg.hard ? "H" : "",
+          t==="V" ? st.cfg.decks.slice().sort().join(",")
+                  : t==="G" ? (st.cfg.gc||"") : (st.cfg.sc||"")].join("|"); }
+
 function saveSession(){
-  st.session = { keys: deck.map(key), i: idx,
-                 decks: st.cfg.decks.slice(), lvs: st.cfg.lvs.slice(), hard: !!st.cfg.hard };
+  st.sessions[curMode || CT()] = { keys: deck.map(key), i: idx, sig: filterSig(curMode || CT()) };
   save(); }
 
 function restoreSession(){
-  const s = st.session;
+  const t = curMode || CT();
+  const s = st.sessions[t];
   if(!s || !Array.isArray(s.keys) || !s.keys.length) return false;
-  // 絞り込みを変えたあとの山札は噛み合わないので作り直す
-  if(!sameSet(s.decks||[], st.cfg.decks) || !sameSet(s.lvs||[], st.cfg.lvs)) return false;
-  if(!!s.hard !== !!st.cfg.hard) return false;
-  const byKey = new Map(VOCAB.map(v=>[key(v), v]));
+  if(s.sig !== filterSig(t)) return false;
+  const byKey = new Map(ARR(t).map(v=>[key(v), v]));
   const d = s.keys.map(k=>byKey.get(k)).filter(Boolean);
   if(!d.length) return false;
   const i = Math.max(0, s.i|0);
@@ -351,7 +379,14 @@ function startFrom(n){
   const s0 = Math.min(Math.max(0, n-1), p.length-1);
   deck = p.slice(s0, s0 + Math.max(1, st.cfg.goal));
   idx = 0; marks = new Map(); shown = false; syncCur();
-  st.cfg.list = false; saveSession(); vCards(); }
+  listOff(); saveSession(); render(); }
+const modeSeg = () => '<div class="seg"><button data-mode="card" aria-pressed="'+(!isList())+
+  '">カード</button><button data-mode="list" aria-pressed="'+isList()+'">一覧</button></div>';
+/* 一覧／カードの切り替えは種類ごとに覚える */
+const LKEY = { V:"list", G:"glist", S:"slist" };
+const isList = () => !!st.cfg[LKEY[CT()]];
+const listOff = () => { st.cfg[LKEY[CT()]] = false; };
+const setList = v => { st.cfg[LKEY[CT()]] = v; save(); };
 
 /* 溜まった復習を全部積むと「1 / 270」になって心が折れる。
    1 日ぶん（ノルマの 2 倍）で切って、残りは翌日に回す。 */
@@ -375,7 +410,7 @@ function buildQueue(){
 function startMiss(){
   const d = missItems(); if(!d.length) return;
   deck = shuffle(d); idx = 0; marks = new Map(); shown = false; syncCur();
-  st.cfg.list = false; saveSession(); vCards();
+  listOff(); saveSession(); render();
 }
 function deckChips(){
   return '<div class="chips">' + VCATS.map(c=>{
@@ -389,7 +424,7 @@ function vCards(){
   const p = pool();
   const dueN = p.filter(isDue).length, newN = p.filter(isNew).length;
   const done = st.done[dstr()]||0, carry = carryOver(), miss = missItems().length, hn = hardCount();
-  head("単語", (st.cfg.list?"一覧 ":"") + p.length + " 語 / " +
+  head("単語", (isList()?"一覧 ":"") + p.length + " 語 / " +
       (st.cfg.hard ? "苦手だけ" :
         "復習 " + dueN + (carry ? "（今日は "+dueCap()+" 枚・持ち越し "+carry+"）" : "") +
         " / 未学習 " + newN) +
@@ -404,17 +439,33 @@ function vCards(){
     '<button class="chip" data-hard="1" aria-pressed="'+st.cfg.hard+'" title="忘れた回数が '+HARD+' 回以上の語だけにする">苦手だけ <span style="font-family:var(--mono);font-size:11px;opacity:.7">'+hn+'</span></button>' +
     (miss ? '<button class="chip" data-miss="1" title="今日まちがえた語をもう一度まわす">今日の間違い <span style="font-family:var(--mono);font-size:11px;opacity:.7">'+miss+'</span></button>' : "") +
     '</div>',
-    streakTag() + countdown() + '<div class="seg"><button data-mode="card" aria-pressed="'+(!st.cfg.list)+'">カード</button><button data-mode="list" aria-pressed="'+(!!st.cfg.list)+'">一覧</button></div>');
+    streakTag() + countdown() + modeSeg());
 
-  if(st.cfg.list){ listVocab(p); return; }
+  if(isList()){ listVocab(p); return; }
+  if(!cardReady(p, "語")) return;
+  const front = st.cfg.dir==="jp" ? esc(cur.w) : esc(cur.c);
+  const long = (st.cfg.dir==="jp"?cur.w:cur.c).length > 7;
+  paintCard(p, {
+    q: '<div class="q'+(long?" small":"")+'" '+(st.cfg.dir==="zh"?'style="font-family:var(--ui)"':"")+'>'+front+'</div>',
+    back: (st.cfg.dir==="jp" ? '<div class="reading">'+esc(cur.r)+'</div><div class="mean zh">'+esc(cur.c)+'</div>'
+                             : '<div class="reading" style="font-family:var(--jp);font-size:1.7rem;color:var(--ink)">'+esc(cur.w)+'</div><div class="reading">'+esc(cur.r)+'</div>') +
+     '<div class="ex"><div class="ex-jp">'+ruby(cur.f)+'</div><div class="ex-zh">'+esc(cur.exc)+'</div>' +
+     '<div style="margin-top:12px;display:flex;gap:8px">'+spk(cur.w,"単語",1)+spk(cur.ex,"例文",1)+'</div></div>' +
+     pairBox(cur)
+  });
+}
+
+/* カード画面に入る前の共通処理。描くものが決まったら true を返す。
+   false のときは「対象が空」「お祝い」「一巡おわり」を描き終えている。 */
+function cardReady(p, unit){
   if(!p.length){ $("#view").innerHTML='<div class="empty"><div class="big">対象が空です。</div>' +
     '<div class="note">'+(st.cfg.hard
-       ? "「苦手だけ」に該当する語がまだありません。取り消すと全部が対象に戻ります。"
-       : "デッキかレベルを選び直してください。")+'</div>' +
+       ? "「苦手だけ」に該当するものがまだありません。取り消すと全部が対象に戻ります。"
+       : "分類かレベルを選び直してください。")+'</div>' +
     (st.cfg.hard?'<div class="empty-btns"><button class="chip" data-hard="1">「苦手だけ」を取り消す</button></div>':"") +
-    '</div>'; return; }
+    '</div>'; return false; }
   if(justCleared){
-    const j = justCleared;
+    const j = justCleared, miss = missItems().length;
     $("#view").innerHTML = '<div class="cheer">' +
       (j.badgeOnly ? '<div class="cheer-big">バッジ獲得！</div>'
                    : '<div class="cheer-big">今日のノルマ達成！</div>' +
@@ -422,48 +473,33 @@ function vCards(){
       (j.got && j.got.length ? '<div class="badge-row">' + j.got.map(b=>
           '<span class="badge got big">'+esc(b.n)+'</span>').join("") + '</div>' : "") +
       '<div class="empty-btns"><button class="chip" id="goOn">続ける</button>' +
-      (miss?'<button class="chip" id="goMiss">今日の間違い '+miss+' 語</button>':"") +
+      (miss?'<button class="chip" id="goMiss">今日の間違い '+miss+' '+unit+'</button>':"") +
       '<button class="chip" id="goRec">記録を見る</button></div></div>';
     if(miss) $("#goMiss").onclick = ()=>{ justCleared=null; startMiss(); };
-    $("#goOn").onclick = ()=>{ justCleared=null; vCards(); };
+    $("#goOn").onclick = ()=>{ justCleared=null; render(); };
     $("#goRec").onclick = ()=>{ justCleared=null; setView("stats"); };
-    return;
+    return false;
   }
   if(!deck.length && !restoreSession()) buildQueue();
   syncCur();
-  if(!cur){                                    // 一巡やり切った（デッキは「前へ」用に残す）
-    const done2 = deck.length;
-    $("#view").innerHTML = '<div class="empty">' +
-      '<div class="big">'+(done2?'この一巡 '+done2+' 枚を終えました。':'今日の分は終わりました。')+'</div>' +
-      '<div class="note">復習は自動で先の日付に回してあります。</div>' +
-      (carry?'<div class="note">溜まっていた復習を '+carry+' 枚、明日に回してあります。</div>':"") +
-      '<div class="empty-btns">' +
-      (miss?'<button class="chip" id="missBtn">今日の間違い '+miss+' 語を見直す</button>':"") +
-      (done2?'<button class="chip" id="prevBtn">← 前へ戻って見直す</button>':"") +
-      '<button class="chip" id="moreBtn">次の '+st.cfg.goal+' 枚へ</button>' +
-      '<button class="chip" id="freeBtn">ランダムに 20 語</button></div></div>';
-    if(miss) $("#missBtn").onclick = startMiss;
-    if(done2) $("#prevBtn").onclick = ()=>{ idx=deck.length-1; shown=true; syncCur(); vCards(); };
-    $("#moreBtn").onclick = ()=>{ buildQueue(); vCards(); };
-    $("#freeBtn").onclick = ()=>{ deck = shuffle(p).slice(0,20); idx=0; marks=new Map(); shown=false; syncCur(); saveSession(); vCards(); };
-    return;
-  }
+  if(!cur){ paintEnd(p, unit); return false; }   // デッキは「前へ」用に残す
+  return true;
+}
+
+/* カードの外枠は 単語 / 文法 / 会話 で共通。中身（表 q・裏 back）だけ差し替える。 */
+function paintCard(p, o){
   const r = rec(cur) || [0,0,0];
-  const front = st.cfg.dir==="jp" ? esc(cur.w) : esc(cur.c);
-  const long = (st.cfg.dir==="jp"?cur.w:cur.c).length > 7;
+  const done = st.done[dstr()]||0;
+  const n = noOf(p, cur);
   $("#view").innerHTML =
    '<div class="card"><div class="tag"><span class="box-dot" style="opacity:'+(.3+r[0]*.12)+'"></span>' + pill(cur) + ' ' +
      esc(cur.cat) + (marks.get(cur)&&marks.get(cur).g ? ' <span class="done-mark">採点済み '+GN[marks.get(cur).g]+'</span>' : '') +
      ((r[2]|0) ? ' <span class="lapse" title="これまでに忘れた回数">忘れ '+(r[2]|0)+'</span>' : '') +
+     (cur.no ? ' <span class="no-tag" title="一覧での番号">#'+cur.no+'</span>' : '') +
      ' <span style="margin-left:auto">BOX ' + r[0] + (r[0]>=MASTER?" · 定着":"") + ' · ' + (idx+1) + ' / ' + deck.length +
-       (noOf(p,cur) ? ' · 全体 #' + noOf(p,cur) : '') + '</span></div>' +
-   '<div class="q'+(long?" small":"")+'" '+(st.cfg.dir==="zh"?'style="font-family:var(--ui)"':"")+'>'+front+'</div>' +
-   (shown ? '<div class="reveal">' +
-     (st.cfg.dir==="jp" ? '<div class="reading">'+esc(cur.r)+'</div><div class="mean zh">'+esc(cur.c)+'</div>'
-                        : '<div class="reading" style="font-family:var(--jp);font-size:30px;color:var(--ink)">'+esc(cur.w)+'</div><div class="reading">'+esc(cur.r)+'</div>') +
-     '<div class="ex"><div class="ex-jp">'+ruby(cur.f)+'</div><div class="ex-zh">'+esc(cur.exc)+'</div>' +
-     '<div style="margin-top:12px;display:flex;gap:8px">'+spk(cur.w,"単語",1)+spk(cur.ex,"例文",1)+'</div></div>' +
-     pairBox(cur) + '</div>'
+       (n ? ' · 全体 #' + n : '') + '</span></div>' +
+   o.q +
+   (shown ? '<div class="reveal">' + o.back + '</div>'
      : '<div class="hint"><span class="tp">タップしてめくる</span>' +
        '<span class="kb">タップ / <kbd>Space</kbd> でめくる　→　めくると <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> で採点</span></div>') +
    '</div>' +
@@ -487,14 +523,33 @@ function vCards(){
   $("#prevBtn").onclick = ()=>go(-1);
   $("#nextBtn").onclick = ()=>go(1);
 }
-function flip(){ if(shown) return; shown=true; vCards();
-  if(st.cfg.dir==="zh" && cur) say(cur.w); }
+
+/* 一巡やり切った／山札が空のときの画面。3 種類で共通。 */
+function paintEnd(p, unit){
+  const done2 = deck.length, miss = missItems().length, carry = carryOver();
+  $("#view").innerHTML = '<div class="empty">' +
+    '<div class="big">'+(done2?'この一巡 '+done2+' 枚を終えました。':'今日の分は終わりました。')+'</div>' +
+    '<div class="note">復習は自動で先の日付に回してあります。</div>' +
+    (carry?'<div class="note">溜まっていた復習を '+carry+' 枚、明日に回してあります。</div>':"") +
+    '<div class="empty-btns">' +
+    (miss?'<button class="chip" id="missBtn">今日の間違い '+miss+' '+unit+'を見直す</button>':"") +
+    (done2?'<button class="chip" id="prevBtn">← 前へ戻って見直す</button>':"") +
+    '<button class="chip" id="moreBtn">次の '+st.cfg.goal+' 枚へ</button>' +
+    '<button class="chip" id="freeBtn">ランダムに 20 '+unit+'</button></div></div>';
+  if(miss) $("#missBtn").onclick = startMiss;
+  if(done2) $("#prevBtn").onclick = ()=>{ idx=deck.length-1; shown=true; syncCur(); render(); };
+  $("#moreBtn").onclick = ()=>{ buildQueue(); render(); };
+  $("#freeBtn").onclick = ()=>{ deck = shuffle(p).slice(0,20); idx=0; marks=new Map();
+    shown=false; syncCur(); saveSession(); render(); };
+}
+function flip(){ if(shown) return; shown=true; render();
+  if(st.cfg.dir==="zh" && cur) say(CT()==="V" ? cur.w : strip(cur.ex || cur.jp)); }
 const GN = {1:"忘れた", 2:"あいまい", 3:"覚えた"};
 function go(d){                       // 採点せずに移動するだけ
   const n = idx + d;
   if(n < 0 || n > deck.length) return;
   stopSay();                          // 前のカードの連続再生を止める
-  idx = n; shown = false; syncCur(); saveSession(); vCards(); }
+  idx = n; shown = false; syncCur(); saveSession(); render(); }
 function doGrade(g){
   if(!cur) return;
   stopSay();
@@ -525,7 +580,7 @@ function doGrade(g){
   const v = Object.values(st.log); st.best = v.length ? Math.max(...v) : 0;
   idx++; shown=false; syncCur();
   saveSession();                      // 採点で山札も位置も変わるので保存する
-  vCards(); }
+  render(); }
 /* 検索は入力欄と枠を置いたままリストだけ差し替える。
    毎回まるごと描き直すと focus と選択位置を手で戻す必要があり、実機ではもたつく。 */
 function debounce(fn, ms){ let t=null;
@@ -559,13 +614,61 @@ function vlist(p){
   $("#vlist").innerHTML = html;
 }
 
-/* ---- 文法 ---- */
+/* ---- 文法 ----
+   300 句型を 1 本の長い一覧で出すと探せないし覚えられない。
+   単語と同じでカードを 1 枚ずつ出し、一覧は探すとき用に残す。 */
+function catChips(t){
+  const cats = [...new Set(ARR(t).filter(lvOK).map(x=>x.cat))];
+  const cur0 = t==="G" ? st.cfg.gc : st.cfg.sc;
+  return '<div class="chips">' +
+    '<button class="chip" data-cat="'+t+':" aria-pressed="'+(!cur0)+'">すべて <span style="font-family:var(--mono);font-size:11px;opacity:.7">'+
+      ARR(t).filter(lvOK).length+'</span></button>' +
+    cats.map(c=>{
+      const inCat = ARR(t).filter(x=>x.cat===c && lvOK(x));
+      const m = inCat.filter(x=>{ const r=rec(x); return r && r[0]>=MASTER; }).length;
+      return '<button class="chip" data-cat="'+t+':'+esc(c)+'" aria-pressed="'+(cur0===c)+'">'+esc(c)+
+        ' <span style="font-family:var(--mono);font-size:11px;opacity:.7">'+m+'/'+inCat.length+'</span></button>';
+    }).join("") + '</div>';
+}
 function vGrammar(){
-  const q=(st._gq||"").trim();
+  const p = pool();
+  const dueN = p.filter(isDue).length, newN = p.filter(isNew).length;
+  const done = st.done[dstr()]||0, carry = carryOver(), miss = missItems().length, hn = hardCount();
+  head("文法", (isList()?"一覧 ":"") + p.length + " / " + GRAM.length + " 句型 / " +
+      (st.cfg.hard ? "苦手だけ" :
+        "復習 " + dueN + (carry ? "（今日は "+dueCap()+" 枚・持ち越し "+carry+"）" : "") +
+        " / 未学習 " + newN) + " / 今日 " + done,
+    catChips("G") +
+    '<div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap">' +
+    '<div class="filt" title="全体の何番目から始めるか">#<input class="field" id="jumpNo" type="number" min="1" max="'+p.length+
+      '" placeholder="'+(noOf(p,cur)||1)+'" style="width:6em;padding:4px 8px;margin:0 6px"><button class="chip" data-jumpno="1">から始める</button></div>' +
+    '<div class="seg"><button data-dir="jp" aria-pressed="'+(st.cfg.dir==="jp")+'">句型→意味</button>' +
+    '<button data-dir="zh" aria-pressed="'+(st.cfg.dir==="zh")+'">意味→句型</button></div></div>',
+    lvChips() +
+    '<div class="chips" style="margin-left:14px">' +
+    '<button class="chip" data-hard="1" aria-pressed="'+st.cfg.hard+'" title="忘れた回数が '+HARD+' 回以上のものだけにする">苦手だけ <span style="font-family:var(--mono);font-size:11px;opacity:.7">'+hn+'</span></button>' +
+    (miss ? '<button class="chip" data-miss="1">今日の間違い <span style="font-family:var(--mono);font-size:11px;opacity:.7">'+miss+'</span></button>' : "") +
+    '</div>',
+    streakTag() + countdown() + modeSeg());
+
+  if(isList()){ listGrammar(); return; }
+  if(!cardReady(p, "句型")) return;
+  const front = st.cfg.dir==="jp" ? esc(cur.p) : esc(cur.c);
+  const long = (st.cfg.dir==="jp"?cur.p:cur.c).length > 11;
+  paintCard(p, {
+    q: '<div class="q'+(long?" small":"")+'" '+(st.cfg.dir==="zh"?'style="font-family:var(--ui)"':"")+'>'+front+'</div>',
+    back: (st.cfg.dir==="jp"
+            ? '<div class="mean zh">'+esc(cur.c)+'</div>'
+            : '<div class="reading" style="font-family:var(--jp);font-size:1.6rem;color:var(--ink)">'+esc(cur.p)+'</div>') +
+     '<div class="conn">接続：'+esc(cur.note)+'</div>' +
+     '<div class="ex"><div class="ex-jp">'+ruby(cur.f)+'</div><div class="ex-zh">'+esc(cur.exc)+'</div>' +
+     '<div style="margin-top:12px;display:flex;gap:8px">'+spk(cur.ex,"例文",1)+
+       '<button class="speak" data-shadow="'+esc(strip(cur.ex))+'">↻ 音読</button></div></div>'
+  });
+}
+function listGrammar(){
   const base = GRAM.filter(lvOK);
-  const f = q ? base.filter(g=>g.p.includes(q)||g.c.includes(q)||g.ex.includes(q)||g.note.includes(q)) : base;
-  head("文法", base.length+" / "+GRAM.length+" 句型", "", lvChips());
-  $("#view").innerHTML = '<input class="field" id="gq" placeholder="句型・意味・例文で検索" value="'+esc(q)+
+  $("#view").innerHTML = '<input class="field" id="gq" placeholder="句型・意味・例文で検索" value="'+esc((st._gq||"").trim())+
     '" autocomplete="off" style="margin-bottom:16px" aria-label="文法を検索">' + resumeBar("G") + '<div id="glist"></div>';
   const inp=$("#gq");
   inp.oninput = debounce(()=>{ st._gq=inp.value; glist(base); }, 150);
@@ -573,54 +676,94 @@ function vGrammar(){
 }
 function glist(base){
   const q=(st._gq||"").trim();
-  const f = q ? base.filter(g=>g.p.includes(q)||g.c.includes(q)||g.ex.includes(q)||g.note.includes(q)) : base;
+  let f = q ? base.filter(g=>g.p.includes(q)||g.c.includes(q)||g.ex.includes(q)||g.note.includes(q)) : base;
+  if(!q && st.cfg.gc) f = f.filter(g=>g.cat===st.cfg.gc);
+  const CAP=200, over=f.length>CAP; f=f.slice(0,CAP);
   let last="";
-  $("#glist").innerHTML = (f.map(g=>{
+  $("#glist").innerHTML = (over?'<div class="note" style="margin-bottom:10px">'+CAP+' 件まで表示。分類を選ぶか検索してください。</div>':"") +
+   (f.map(g=>{
     let h=""; if(g.cat!==last){ last=g.cat; h='<div class="group-head">'+esc(g.cat)+'<span>'+base.filter(x=>x.cat===g.cat).length+'</span></div>'; }
     return h + '<div class="row num">' + noBtn("G", g.no) + '<div class="row-main">' +
       '<div class="row-jp"><em>'+esc(g.p)+'</em> <span class="zh" style="font-size:14px;color:var(--ink)">'+esc(g.c)+'</span></div>' +
       '<div class="row-meta">接続：'+esc(g.note)+'</div>' +
       '<div class="row-jp" style="margin-top:8px">'+ruby(g.f)+'</div>' +
       '<div class="row-zh">'+esc(g.exc)+'</div></div>' +
-      '<div class="row-side">'+pill(g)+spk(g.ex,"例文")+'</div></div>';
+      '<div class="row-side">'+pill(g)+spk(g.ex,"例文")+
+      '<button class="chip" data-fromno="G:'+g.no+'" title="この句型からカードを始める">ここから</button></div></div>';
   }).join("") || '<div class="empty">該当なし</div>');
 }
 
-/* ---- 会話 ---- */
+/* ---- 会話 ----
+   600 文の一覧はスクロールで流れて終わる。カードで 1 文ずつ出し、
+   音読（シャドーイング）まで 1 画面で終わるようにする。 */
 function vSpeak(){
-  const sc = st._sc || SCATS[0];
-  const q = (st._sq||"").trim();
+  const p = pool();
+  const dueN = p.filter(isDue).length, newN = p.filter(isNew).length;
+  const done = st.done[dstr()]||0, carry = carryOver(), miss = missItems().length, hn = hardCount();
+  head("会話", (isList()?"一覧 ":"") + p.length + " / " + SPK.length + " 文 / " +
+      (st.cfg.hard ? "苦手だけ" :
+        "復習 " + dueN + (carry ? "（持ち越し "+carry+"）" : "") + " / 未学習 " + newN) +
+      " / 今日 " + done + " · 音読 " + st.cfg.rate.toFixed(2) + "x",
+    catChips("S") +
+    '<div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap">' +
+    '<div class="filt" title="全体の何番目から始めるか">#<input class="field" id="jumpNo" type="number" min="1" max="'+p.length+
+      '" placeholder="'+(noOf(p,cur)||1)+'" style="width:6em;padding:4px 8px;margin:0 6px"><button class="chip" data-jumpno="1">から始める</button></div>' +
+    '<div class="seg" title="読み上げの速さ">'+[.7,.8,.9,1].map(r=>'<button data-rate="'+r+'" aria-pressed="'+(Math.abs(st.cfg.rate-r)<.01)+'">'+r+'x</button>').join("")+'</div>' +
+    '<div class="seg" title="音読のくり返し回数">'+[1,2,3].map(n=>'<button data-sh="'+n+'" aria-pressed="'+(st.cfg.shadow===n)+'">'+n+'回</button>').join("")+'</div>' +
+    '<div class="seg"><button data-dir="jp" aria-pressed="'+(st.cfg.dir==="jp")+'">日→中</button>' +
+    '<button data-dir="zh" aria-pressed="'+(st.cfg.dir==="zh")+'">中→日</button></div></div>',
+    lvChips() +
+    '<div class="chips" style="margin-left:14px">' +
+    '<button class="chip" data-hard="1" aria-pressed="'+st.cfg.hard+'" title="忘れた回数が '+HARD+' 回以上のものだけにする">苦手だけ <span style="font-family:var(--mono);font-size:11px;opacity:.7">'+hn+'</span></button>' +
+    (miss ? '<button class="chip" data-miss="1">今日の間違い <span style="font-family:var(--mono);font-size:11px;opacity:.7">'+miss+'</span></button>' : "") +
+    '</div>',
+    streakTag() + countdown() + modeSeg());
+
+  if(isList()){ listSpeak(); return; }
+  if(!cardReady(p, "文")) return;
+  const plainJp = strip(cur.jp);
+  paintCard(p, {
+    q: st.cfg.dir==="jp"
+        ? '<div class="q spk-q">'+ruby(cur.f)+'</div>'
+        : '<div class="q spk-q" style="font-family:var(--ui)">'+esc(cur.zh)+'</div>',
+    back: (st.cfg.dir==="jp"
+            ? '<div class="mean zh">'+esc(cur.zh)+'</div>'
+            : '<div class="ex-jp" style="font-size:1.45rem;line-height:1.9">'+ruby(cur.f)+'</div>') +
+     (cur.note?'<div class="conn">▸ '+esc(cur.note)+'</div>':"") +
+     '<div class="ex" style="border-top:0;padding-top:6px"><div style="display:flex;gap:8px;flex-wrap:wrap">' +
+       spk(plainJp,"聞く",1) +
+       '<button class="speak" data-shadow="'+esc(plainJp)+'">↻ 音読 ×'+st.cfg.shadow+'</button></div></div>'
+  });
+}
+function listSpeak(){
   const sbase = SPK.filter(lvOK);
-  const scChips = '<div class="chips scene">'+SCATS.map(c=>{
-      const n = sbase.filter(x=>x.cat===c).length;
-      return '<button class="chip" data-sc="'+esc(c)+'" aria-pressed="'+(!q&&c===sc)+'">'+esc(c)+
-        ' <span style="font-family:var(--mono);font-size:11px;opacity:.7">'+n+'</span></button>'; }).join("")+'</div>';
-  head("会話", sbase.length+" / "+SPK.length+" 文 · 音読 "+st.cfg.rate.toFixed(2)+"x",
-    '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-    '<div class="seg">'+[.7,.8,.9,1].map(r=>'<button data-rate="'+r+'" aria-pressed="'+(Math.abs(st.cfg.rate-r)<.01)+'">'+r+'x</button>').join("")+'</div>' +
-    '<div class="seg">'+[1,2,3].map(n=>'<button data-sh="'+n+'" aria-pressed="'+(st.cfg.shadow===n)+'">'+n+'回</button>').join("")+'</div></div>', lvChips());
-  $("#view").innerHTML =
-    scChips + resumeBar("S") +
-    '<input class="field" id="sq" placeholder="場面をまたいで検索" value="'+esc(q)+
+  $("#view").innerHTML = resumeBar("S") +
+    '<input class="field" id="sq" placeholder="場面をまたいで検索" value="'+esc((st._sq||"").trim())+
       '" autocomplete="off" style="margin-bottom:18px" aria-label="会話文を検索"><div id="slist"></div>';
   const inp=$("#sq");
-  inp.oninput = debounce(()=>{ st._sq=inp.value; slist(sbase, sc); }, 150);
-  slist(sbase, sc);
+  inp.oninput = debounce(()=>{ st._sq=inp.value; slist(sbase); }, 150);
+  slist(sbase);
 }
-function slist(sbase, sc){
+function slist(sbase){
   const q = (st._sq||"").trim();
-  const f = q ? sbase.filter(s=>s.jp.includes(q)||s.zh.includes(q)||s.note.includes(q))
-              : sbase.filter(s=>s.cat===sc);
+  let f = q ? sbase.filter(s=>s.jp.includes(q)||s.zh.includes(q)||s.note.includes(q)) : sbase;
+  if(!q && st.cfg.sc) f = f.filter(s=>s.cat===st.cfg.sc);
+  const CAP=200, over=f.length>CAP; f=f.slice(0,CAP);
+  let last="";
   $("#slist").innerHTML =
-    (q?"":'<div class="group-head">'+esc(sc)+'<span>'+f.length+' 文</span></div>') +
-    (f.map(s=>'<div class="row num">' + noBtn("S", s.no) + '<div class="row-main">' +
+    (over?'<div class="note" style="margin-bottom:10px">'+CAP+' 件まで表示。分類を選ぶか検索してください。</div>':"") +
+    (f.map(s=>{
+      let h=""; if(s.cat!==last){ last=s.cat;
+        h='<div class="group-head">'+esc(s.cat)+'<span>'+sbase.filter(x=>x.cat===s.cat).length+' 文</span></div>'; }
+      return h + '<div class="row num">' + noBtn("S", s.no) + '<div class="row-main">' +
       '<div class="row-jp">'+ruby(s.f)+'</div>' +
       '<div class="row-zh">'+esc(s.zh)+'</div>' +
       (s.note?'<div class="row-meta">▸ '+esc(s.note)+'</div>':"") + '</div>' +
       '<div class="row-side">' + pill(s) +
         '<button class="speak" data-say="'+esc(strip(s.jp))+'">◗ 聞く</button>' +
-        '<button class="speak" data-shadow="'+esc(strip(s.jp))+'">↻ 音読</button></div></div>').join("")
-      || '<div class="empty">該当なし</div>');
+        '<button class="speak" data-shadow="'+esc(strip(s.jp))+'">↻ 音読</button>' +
+        '<button class="chip" data-fromno="S:'+s.no+'" title="この文からカードを始める">ここから</button></div></div>';
+    }).join("") || '<div class="empty">該当なし</div>');
 }
 
 /* ---- 小試験 ---- */
@@ -904,8 +1047,8 @@ document.addEventListener("click", e=>{
   if(d){ const c=d.dataset.deck, i=st.cfg.decks.indexOf(c);
     if(i<0) st.cfg.decks.push(c); else if(st.cfg.decks.length>1) st.cfg.decks.splice(i,1);
     save(); deck=[]; idx=0; cur=null; qs=[]; qi=0; render(); return; }
-  const dir=e.target.closest("[data-dir]"); if(dir){ st.cfg.dir=dir.dataset.dir; save(); vCards(); return; }
-  const m=e.target.closest("[data-mode]"); if(m){ st.cfg.list = m.dataset.mode==="list"; save(); vCards(); return; }
+  const dir=e.target.closest("[data-dir]"); if(dir){ st.cfg.dir=dir.dataset.dir; save(); render(); return; }
+  const m=e.target.closest("[data-mode]"); if(m){ setList(m.dataset.mode==="list"); render(); return; }
   const jn=e.target.closest("[data-jumpno]");
   if(jn){ const el=$("#jumpNo"), n=parseInt(el&&el.value,10);
     if(n>0) startFrom(n); return; }
@@ -916,26 +1059,41 @@ document.addEventListener("click", e=>{
     const i=pool().findIndex(x=>x.w===w);
     if(i>=0) startFrom(i+1); else render();
     return; }
-  const rp=e.target.closest("[data-reps]"); if(rp){ st.cfg.reps=+rp.dataset.reps; save(); vCards(); return; }
+  const rp=e.target.closest("[data-reps]"); if(rp){ st.cfg.reps=+rp.dataset.reps; save(); render(); return; }
   const hd=e.target.closest("[data-hard]");
   if(hd){ st.cfg.hard=!st.cfg.hard; save(); deck=[]; idx=0; cur=null; qs=[]; qi=0; render(); return; }
   const ms=e.target.closest("[data-miss]"); if(ms){ startMiss(); return; }
   const qm=e.target.closest("[data-qmode]");
   if(qm){ st.cfg.qmode=qm.dataset.qmode; save(); qs=[]; qi=0; vQuiz(); return; }
-  const r=e.target.closest("[data-rate]"); if(r){ st.cfg.rate=+r.dataset.rate; save(); vSpeak(); return; }
-  const n=e.target.closest("[data-sh]"); if(n){ st.cfg.shadow=+n.dataset.sh; save(); vSpeak(); return; }
+  const r=e.target.closest("[data-rate]"); if(r){ st.cfg.rate=+r.dataset.rate; save(); render(); return; }
+  const n=e.target.closest("[data-sh]"); if(n){ st.cfg.shadow=+n.dataset.sh; save(); render(); return; }
   const nb=e.target.closest("[data-no]");
   if(nb){ const [t,n]=nb.dataset.no.split(":");
     st.mark[t] = (st.mark[t]===+n) ? 0 : +n; save();
-    (t==="G"?vGrammar:vSpeak)(); if(st.mark[t]) jumpTo(t); return; }
+    render(); if(st.mark[t]) jumpTo(t); return; }
   const jb=e.target.closest("[data-jump]"); if(jb){ jumpTo(jb.dataset.jump); return; }
   const cm=e.target.closest("[data-clearmark]");
-  if(cm){ const t=cm.dataset.clearmark; st.mark[t]=0; save(); (t==="G"?vGrammar:vSpeak)(); return; }
+  if(cm){ st.mark[cm.dataset.clearmark]=0; save(); render(); return; }
   if(e.target.closest("#examTag")){
     const v = prompt("試験日を YYYY-MM-DD で入力してください", st.cfg.exam);
     if(v && /^\d{4}-\d{2}-\d{2}$/.test(v)){ st.cfg.exam=v; save(); render(); }
     return; }
-  const c2=e.target.closest("[data-sc]"); if(c2){ st._sc=c2.dataset.sc; st._sq=""; vSpeak(); return; }
+  const c2=e.target.closest("[data-cat]");
+  if(c2){ const i=c2.dataset.cat.indexOf(":"), t=c2.dataset.cat.slice(0,i), c=c2.dataset.cat.slice(i+1);
+    if(t==="G"){ st.cfg.gc = (st.cfg.gc===c ? "" : c); st._gq=""; }
+    else       { st.cfg.sc = (st.cfg.sc===c ? "" : c); st._sq=""; }
+    save(); deck=[]; idx=0; cur=null; render(); return; }
+  /* 一覧の「ここから」（文法・会話は番号で指す） */
+  const fn=e.target.closest("[data-fromno]");
+  if(fn){ const [t,no]=fn.dataset.fromno.split(":");
+    const it = ARR(t).find(x=>x.no===+no); if(!it) return;
+    if(st.cfg.hard && !isHard(it)) st.cfg.hard=false;
+    if(t==="G" && st.cfg.gc && it.cat!==st.cfg.gc) st.cfg.gc="";
+    if(t==="S" && st.cfg.sc && it.cat!==st.cfg.sc) st.cfg.sc="";
+    if(!lvOK(it) && !st.cfg.lvs.includes(it.lv)) st.cfg.lvs.push(it.lv);
+    const i = pool().indexOf(it);
+    if(i>=0) startFrom(i+1); else render();
+    return; }
   const L=e.target.closest("[data-lv]");
   if(L){ const n=+L.dataset.lv, i=st.cfg.lvs.indexOf(n);
     if(i<0) st.cfg.lvs.push(n); else if(st.cfg.lvs.length>1) st.cfg.lvs.splice(i,1);
@@ -950,7 +1108,7 @@ document.addEventListener("keydown", e=>{
   if(justCleared){
     if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); const b=$("#goOn"); if(b) b.click(); }
     return; }
-  if(st.cfg.view==="cards" && !st.cfg.list){
+  if(MODES[st.cfg.view] && !isList()){
     if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); shown?0:flip(); return; }
     if(shown && "123".includes(e.key)){ doGrade(+e.key); return; }
     if(e.code==="ArrowLeft"||e.code==="Backspace"){ e.preventDefault(); go(-1); return; }
