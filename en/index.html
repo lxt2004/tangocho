@@ -1652,7 +1652,9 @@ function vCards(){
      (st.cfg.dir==="jp" ? '<div class="reading">'+ruby(cur.r)+'</div><div class="mean zh">'+esc(cur.c)+'</div>'
                         : '<div class="reading" style="font-family:var(--en);font-size:34px;color:var(--ink);letter-spacing:-.01em">'+esc(cur.w)+'</div>') +
      '<div class="ex"><div class="ex-en">'+esc(cur.ex)+'</div><div class="ex-jp" style="margin-top:6px">'+ruby(cur.exc)+'</div>' +
-     '<div style="margin-top:12px;display:flex;gap:8px">'+spk(cur.w,"単語",1)+spk(cur.ex,"例文",1)+'</div></div></div>'
+     '<div style="margin-top:12px;display:flex;gap:8px">'+spk(cur.w,"単語",1)+spk(cur.ex,"例文",1)+'</div></div></div>' +
+       '<div class="hint"><span class="tp">もう一度タップで隠す</span>' +
+       '<span class="kb">もう一度タップ / <kbd>Space</kbd> で隠す　→　<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> で採点</span></div>'
      : '<div class="hint"><span class="tp">タップしてめくる</span>' +
        '<span class="kb">タップ / <kbd>Space</kbd> でめくる　→　めくると <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> で採点</span></div>') +
    '</div>' +
@@ -1670,14 +1672,20 @@ function vCards(){
        ? '今日のノルマ達成 ✓　'+done+' 枚'
        : '今日 '+done+' / '+st.cfg.goal+' 枚　あと '+(st.cfg.goal-done)+' 枚')+'</span></div>';
 
-  if(!shown) $(".card").onclick = flip;
+  /* カードのどこを押してもめくる／戻す。ただし裏に置いたボタン（音声など）は
+     めくり操作として扱わない。押すたびに裏が消えると使えないため。 */
+  $(".card").onclick = e=>{ if(!e.target.closest("button,a,input,label,select,textarea")) flip(); };
   document.querySelectorAll("[data-flip]").forEach(b=>b.onclick=flip);
   document.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>doGrade(+b.dataset.g));
   $("#prevBtn").onclick = ()=>go(-1);
   $("#nextBtn").onclick = ()=>go(1);
 }
-function flip(){ if(shown) return; shown=true; vCards();
-  if(st.cfg.dir==="zh" && cur) say(cur.w); }
+/* めくる／戻すの切り替え。見えたものをもう一度隠して思い出し直せるようにする。 */
+function flip(){
+  stopSay();                     // 戻すときは読み上げも止める
+  shown = !shown;
+  vCards();
+  if(shown && st.cfg.dir==="zh" && cur) say(cur.w); }
 const GN = {1:"忘れた", 2:"あいまい", 3:"覚えた"};
 function go(d){                       // 採点せずに移動するだけ
   const n = idx + d;
@@ -2139,7 +2147,7 @@ document.addEventListener("keydown", e=>{
     if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); const b=$("#goOn"); if(b) b.click(); }
     return; }
   if(st.cfg.view==="cards" && !st.cfg.list){
-    if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); shown?0:flip(); return; }
+    if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); flip(); return; }
     if(shown && "123".includes(e.key)){ doGrade(+e.key); return; }
     if(e.code==="ArrowLeft"||e.code==="Backspace"){ e.preventDefault(); go(-1); return; }
     if(e.code==="ArrowRight"){ e.preventDefault(); go(1); return; }

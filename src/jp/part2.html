@@ -499,7 +499,9 @@ function paintCard(p, o){
      ' <span style="margin-left:auto">BOX ' + r[0] + (r[0]>=MASTER?" · 定着":"") + ' · ' + (idx+1) + ' / ' + deck.length +
        (n ? ' · 全体 #' + n : '') + '</span></div>' +
    o.q +
-   (shown ? '<div class="reveal">' + o.back + '</div>'
+   (shown ? '<div class="reveal">' + o.back + '</div>' +
+       '<div class="hint"><span class="tp">もう一度タップで隠す</span>' +
+       '<span class="kb">もう一度タップ / <kbd>Space</kbd> で隠す　→　<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> で採点</span></div>'
      : '<div class="hint"><span class="tp">タップしてめくる</span>' +
        '<span class="kb">タップ / <kbd>Space</kbd> でめくる　→　めくると <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> で採点</span></div>') +
    '</div>' +
@@ -517,7 +519,9 @@ function paintCard(p, o){
        ? '今日のノルマ達成 ✓　'+done+' 枚'
        : '今日 '+done+' / '+st.cfg.goal+' 枚　あと '+(st.cfg.goal-done)+' 枚')+'</span></div>';
 
-  if(!shown) $(".card").onclick = flip;
+  /* カードのどこを押してもめくる／戻す。ただし裏に置いたボタン（音声・音読など）は
+     めくり操作として扱わない。押すたびに裏が消えると使えないため。 */
+  $(".card").onclick = e=>{ if(!e.target.closest("button,a,input,label,select,textarea")) flip(); };
   document.querySelectorAll("[data-flip]").forEach(b=>b.onclick=flip);
   document.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>doGrade(+b.dataset.g));
   $("#prevBtn").onclick = ()=>go(-1);
@@ -542,8 +546,12 @@ function paintEnd(p, unit){
   $("#freeBtn").onclick = ()=>{ deck = shuffle(p).slice(0,20); idx=0; marks=new Map();
     shown=false; syncCur(); saveSession(); render(); };
 }
-function flip(){ if(shown) return; shown=true; render();
-  if(st.cfg.dir==="zh" && cur) say(CT()==="V" ? cur.w : strip(cur.ex || cur.jp)); }
+/* めくる／戻すの切り替え。見えたものをもう一度隠して思い出し直せるようにする。 */
+function flip(){
+  stopSay();                     // 戻すときは読み上げも止める
+  shown = !shown;
+  render();
+  if(shown && st.cfg.dir==="zh" && cur) say(CT()==="V" ? cur.w : strip(cur.ex || cur.jp)); }
 const GN = {1:"忘れた", 2:"あいまい", 3:"覚えた"};
 function go(d){                       // 採点せずに移動するだけ
   const n = idx + d;
@@ -1109,7 +1117,7 @@ document.addEventListener("keydown", e=>{
     if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); const b=$("#goOn"); if(b) b.click(); }
     return; }
   if(MODES[st.cfg.view] && !isList()){
-    if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); shown?0:flip(); return; }
+    if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); flip(); return; }
     if(shown && "123".includes(e.key)){ doGrade(+e.key); return; }
     if(e.code==="ArrowLeft"||e.code==="Backspace"){ e.preventDefault(); go(-1); return; }
     if(e.code==="ArrowRight"){ e.preventDefault(); go(1); return; }
