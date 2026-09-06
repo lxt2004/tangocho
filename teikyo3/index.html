@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="帝京第三高等学校（2027年より帝京大学青峰高等学校）進学コース 受験参考资料">
+<style>
+  :root { color-scheme: light dark; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<title>帝京第三 受験ノート</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --ground: #F4F6F5;
+    --surface: #FFFFFF;
+    --sunk: #EDF1F1;
+    --ink: #16212B;
+    --muted: #5A6B78;
+    --faint: #8B9AA5;
+    --peak: #27618F;
+    --peak-soft: #E4EDF5;
+    --amber: #8A5F0C;
+    --amber-soft: #F6EEDC;
+    --alert: #9E3527;
+    --alert-soft: #F8E8E5;
+    --rule: #DCE3E4;
+    --rule-strong: #C3CDD0;
+
+    --f-display: "Zen Old Mincho", "Noto Serif JP", "Songti SC", serif;
+    --f-body: "Noto Sans JP", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    --f-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --measure: 880px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #10161B;
+      --surface: #18212A;
+      --sunk: #1D2831;
+      --ink: #E2E9ED;
+      --muted: #9CABB6;
+      --faint: #74838E;
+      --peak: #7EB2DC;
+      --peak-soft: #1B2E3E;
+      --amber: #D8A63F;
+      --amber-soft: #32291596;
+      --alert: #E08C7E;
+      --alert-soft: #3A211D;
+      --rule: #2A353F;
+      --rule-strong: #3C4A55;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #10161B;
+    --surface: #18212A;
+    --sunk: #1D2831;
+    --ink: #E2E9ED;
+    --muted: #9CABB6;
+    --faint: #74838E;
+    --peak: #7EB2DC;
+    --peak-soft: #1B2E3E;
+    --amber: #D8A63F;
+    --amber-soft: #32291596;
+    --alert: #E08C7E;
+    --alert-soft: #3A211D;
+    --rule: #2A353F;
+    --rule-strong: #3C4A55;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 15px;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 0 22px 96px;
+  }
+
+  /* ---------- masthead ---------- */
+  .mast { padding: 46px 0 0; }
+  .mast .eyebrow {
+    font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 14px;
+  }
+  .mast h1 {
+    font-family: var(--f-display);
+    font-weight: 900;
+    font-size: clamp(30px, 6vw, 46px);
+    line-height: 1.18;
+    letter-spacing: .02em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .rename {
+    display: inline-flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+    margin-top: 12px; font-size: 13px; color: var(--muted);
+  }
+  .rename b { color: var(--peak); font-weight: 700; font-family: var(--f-display); font-size: 15px; }
+
+  .ridge { display: block; width: 100%; height: 64px; margin: 22px 0 0; }
+
+  .ident {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 2px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-top: 2px;
+  }
+  .ident > div { background: var(--surface); padding: 14px 16px; }
+  .ident dt {
+    font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 4px;
+  }
+  .ident dd { margin: 0; font-size: 14px; }
+  .ident dd.big {
+    font-family: var(--f-mono); font-size: 19px; font-weight: 600;
+    color: var(--peak); letter-spacing: .01em;
+  }
+
+  /* ---------- sections ---------- */
+  section { margin-top: 56px; }
+  h2 {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 23px;
+    letter-spacing: .03em;
+    margin: 0 0 4px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  h2 .num {
+    font-family: var(--f-mono); font-size: 12px; font-weight: 500;
+    color: var(--peak); letter-spacing: .08em;
+  }
+  .lede { color: var(--muted); font-size: 14px; margin: 14px 0 0; }
+
+  h3 {
+    font-family: var(--f-display); font-weight: 700; font-size: 16px;
+    letter-spacing: .04em; margin: 30px 0 10px;
+  }
+
+  /* ---------- status chips ---------- */
+  .chip {
+    display: inline-block; vertical-align: 2px;
+    font-size: 10px; font-weight: 700; line-height: 1.6;
+    letter-spacing: .1em; padding: 1px 7px; border-radius: 2px;
+    white-space: nowrap;
+  }
+  .chip.ok   { background: var(--peak-soft);  color: var(--peak); }
+  .chip.ask  { background: var(--amber-soft); color: var(--amber); }
+  .chip.key  { background: var(--alert-soft); color: var(--alert); }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 8px 20px;
+    font-size: 12.5px; color: var(--muted);
+    padding: 14px 16px; margin-top: 26px;
+    background: var(--sunk); border-left: 3px solid var(--rule-strong);
+  }
+  .legend span { display: inline-flex; align-items: baseline; gap: 7px; }
+
+  /* ---------- data rows ---------- */
+  .rows { border-top: 1px solid var(--rule); margin-top: 16px; }
+  .row {
+    display: grid; grid-template-columns: 160px 1fr; gap: 4px 20px;
+    padding: 11px 0; border-bottom: 1px solid var(--rule);
+    align-items: baseline;
+  }
+  .row > dt { color: var(--muted); font-size: 13px; }
+  .row > dd { margin: 0; }
+  @media (max-width: 620px) { .row { grid-template-columns: 1fr; } }
+
+  .num, .yen, .tabular { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+  strong.hi { color: var(--peak); }
+
+  /* ---------- tables ---------- */
+  .scroll { overflow-x: auto; margin-top: 16px; }
+  table { border-collapse: collapse; width: 100%; min-width: 420px; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--rule); vertical-align: baseline; }
+  thead th {
+    font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--faint); font-weight: 500; border-bottom: 1px solid var(--rule-strong);
+    padding-bottom: 7px;
+  }
+  td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; padding-right: 0; }
+  tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); }
+  tr.total td.n { color: var(--peak); }
+
+  /* ---------- notes ---------- */
+  .note {
+    padding: 15px 18px; margin-top: 20px; font-size: 13.5px;
+    background: var(--sunk); border-left: 3px solid var(--peak);
+  }
+  .note.warn { border-left-color: var(--amber); }
+  .note.alert { border-left-color: var(--alert); }
+  .note p { margin: 0; }
+  .note p + p { margin-top: 9px; }
+  .note b { font-weight: 700; }
+
+  /* ---------- route rails ---------- */
+  .routes { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 26px; margin-top: 20px; }
+  .route { background: var(--surface); border: 1px solid var(--rule); padding: 20px 22px 22px; }
+  .route header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .route h3 { margin: 0; font-size: 15px; }
+  .route .verdict { font-size: 11.5px; color: var(--muted); }
+  .rail { list-style: none; margin: 18px 0 0; padding: 0 0 0 20px; border-left: 2px solid var(--rule-strong); }
+  .rail li { position: relative; padding: 0 0 20px; }
+  .rail li:last-child { padding-bottom: 0; }
+  .rail li::before {
+    content: ""; position: absolute; left: -26px; top: 7px;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--surface); border: 2px solid var(--peak);
+  }
+  .rail li:last-child::before { background: var(--peak); }
+  .rail .stop { font-weight: 700; font-size: 14.5px; }
+  .rail .leg { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .rail .leg .tabular { color: var(--ink); }
+  .route .sum {
+    display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    margin-top: 18px; padding-top: 12px; border-top: 2px solid var(--ink);
+    font-size: 13.5px;
+  }
+  .route .sum b { font-family: var(--f-mono); font-size: 16px; color: var(--peak); }
+
+  /* ---------- timeline ---------- */
+  .tl { list-style: none; margin: 20px 0 0; padding: 0; }
+  .tl li {
+    display: grid; grid-template-columns: 118px 1fr; gap: 4px 20px;
+    padding: 13px 0; border-bottom: 1px solid var(--rule); align-items: baseline;
+  }
+  .tl li:first-child { border-top: 1px solid var(--rule); }
+  .tl .when {
+    font-family: var(--f-mono); font-size: 12.5px; font-variant-numeric: tabular-nums;
+    color: var(--peak); font-weight: 600; letter-spacing: -.01em;
+  }
+  .tl li.now { background: var(--peak-soft); margin: 0 -14px; padding-left: 14px; padding-right: 14px; }
+  .tl li.now .when::after { content: " ←今"; color: var(--muted); font-weight: 400; }
+  .tl .what b { display: block; }
+  .tl .what span { font-size: 13px; color: var(--muted); }
+  @media (max-width: 620px) { .tl li { grid-template-columns: 1fr; } }
+
+  /* ---------- checklist ---------- */
+  .asklist { list-style: none; margin: 20px 0 0; padding: 0; counter-reset: q; }
+  .asklist li {
+    display: grid; grid-template-columns: 30px 1fr; gap: 14px;
+    padding: 16px 18px; margin-bottom: 8px;
+    background: var(--surface); border: 1px solid var(--rule);
+  }
+  .asklist li.first { border-color: var(--alert); border-width: 1.5px; }
+  .asklist li::before {
+    counter-increment: q; content: counter(q);
+    font-family: var(--f-mono); font-size: 15px; font-weight: 700;
+    color: var(--peak); line-height: 1.5;
+  }
+  .asklist li.first::before { color: var(--alert); }
+  .asklist .q { font-weight: 700; font-size: 14.5px; }
+  .asklist .jp {
+    display: block; font-family: var(--f-display); font-size: 13.5px;
+    color: var(--muted); margin-top: 5px; padding-left: 11px;
+    border-left: 2px solid var(--rule-strong);
+  }
+  .asklist .why { display: block; font-size: 12.5px; color: var(--muted); margin-top: 7px; }
+
+  /* ---------- links ---------- */
+  a { color: var(--peak); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  a:focus-visible { outline: 2px solid var(--peak); outline-offset: 3px; border-radius: 1px; }
+  .links { list-style: none; margin: 16px 0 0; padding: 0; }
+  .links li { padding: 9px 0; border-bottom: 1px solid var(--rule); font-size: 13.5px; }
+  .links li span { color: var(--muted); display: block; font-size: 12.5px; }
+  .links a { word-break: break-all; }
+
+  footer {
+    margin-top: 60px; padding-top: 18px; border-top: 1px solid var(--rule);
+    font-size: 12px; color: var(--faint); line-height: 1.8;
+  }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+  <header class="mast">
+    <p class="eyebrow">山梨県北杜市小淵沢 · 2027年4月入学 受験メモ</p>
+    <h1>帝京第三高等学校<br>進学コース</h1>
+    <p class="rename">2027年より校名変更 → <b>帝京大学青峰高等学校</b></p>
+
+    <svg class="ridge" viewBox="0 0 880 64" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path d="M0 64 L0 46 L58 30 L104 41 L168 14 L210 34 L262 22 L318 44 L372 8 L418 30 L470 18 L524 39 L586 20 L642 42 L700 26 L758 45 L812 33 L880 48 L880 64 Z"
+            fill="var(--peak)" opacity="0.14"></path>
+      <path d="M0 46 L58 30 L104 41 L168 14 L210 34 L262 22 L318 44 L372 8 L418 30 L470 18 L524 39 L586 20 L642 42 L700 26 L758 45 L812 33 L880 48"
+            fill="none" stroke="var(--peak)" stroke-width="1.5" opacity="0.5"></path>
+    </svg>
+
+    <dl class="ident">
+      <div><dt>所在地</dt><dd>〒408-0044<br>山梨県北杜市小淵沢町2148</dd></div>
+      <div><dt>電話（入試・寮）</dt><dd class="big">0551-36-2411</dd></div>
+      <div><dt>設置者 / 創立</dt><dd>学校法人帝京大学<br>1962年・男女共学・普通科</dd></div>
+    </dl>
+
+    <div class="legend">
+      <span><i class="chip ok">確認済</i> 官网・公开资料已核实</span>
+      <span><i class="chip ask">要確認</i> 未公开，需电话询问</span>
+      <span><i class="chip key">最重要</i> 可能推翻整个计划</span>
+    </div>
+  </header>
+
+  <!-- 1 -->
+  <section>
+    <h2><span class="num">01</span>学校概要</h2>
+    <p class="lede">全校 439 人的小规模住宿制学校，女生占近一半。她的目标是 <strong class="hi">進学コース</strong>（偏差值 38–41）。</p>
+
+    <dl class="rows">
+      <div class="row"><dt>学生数 <i class="chip ok">確認済</i></dt><dd><span class="num">439</span> 名（男 <span class="num">223</span> ／女 <span class="num">216</span>）※2025年4月</dd></div>
+      <div class="row"><dt>1年级构成</dt><dd>特別選抜 男<span class="num">21</span>・女<span class="num">26</span> ／ 進学 男<span class="num">59</span>・女<span class="num">46</span> → 一届约 <span class="num">152</span> 人</dd></div>
+      <div class="row"><dt>コース</dt><dd><b>特別選抜コース</b>（偏差值 55）— プレミアクラス＝国公立志向／共創クラス＝帝京集团志向<br><b>進学コース</b>（偏差值 <strong class="hi">38–41</strong>）— 文武両道</dd></div>
+      <div class="row"><dt>升学实绩 <i class="chip ok">確認済</i></dt><dd>2021年度 毕业生半数以上、共 <span class="num">105</span> 名进入帝京集团<br><span style="color:var(--muted)">帝京大 <span class="num">57</span>／帝京平成 <span class="num">16</span>／帝京科学 <span class="num">11</span></span></dd></div>
+      <div class="row"><dt>女子部活</dt><dd>バレーボール・ソフトボール・サッカー・バスケットボール</dd></div>
+      <div class="row"><dt>近年变化</dt><dd>2025年 通信制課程開設 ／ 2027年 校名を「帝京大学青峰高等学校」へ</dd></div>
+    </dl>
+
+    <div class="note">
+      <p><b>オール帝京特別選抜制度</b>（升入帝京集团的推荐制度）</p>
+      <p>① <b>无笔试、无小论文</b>　② 可与<b>国公立大学・早慶并愿</b>（保底的同时还能往上冲）　③ 合格权<b>保留到一浪</b></p>
+      <p style="color:var(--muted)">※ 需确认進学コース的学生是否同样适用，还是仅限特別選抜コース的共創クラス。<i class="chip ask">要確認</i></p>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section>
+    <h2><span class="num">02</span>岳誠寮（女子寮）</h2>
+    <p class="lede">距学校步行 2 分钟。全校女生 216 人对 50 个床位——住宿是这所学校的常态，不是特例。</p>
+
+    <dl class="rows">
+      <div class="row"><dt>规模 <i class="chip ok">確認済</i></dt><dd>地上 <span class="num">3</span> 层／定员 <span class="num">50</span> 名／<span class="num">2</span> 人 1 室 × <span class="num">25</span> 室</dd></div>
+      <div class="row"><dt>房间</dt><dd>空调・冰箱・衣柜</dd></div>
+      <div class="row"><dt>学习环境</dt><dd><span class="num">30</span> 人自习室／寮内全馆网络</dd></div>
+      <div class="row"><dt>生活设施</dt><dd>大浴场＋各层洗面室（大镜）／多个淋浴间／食堂</dd></div>
+      <div class="row"><dt>安全管理</dt><dd>出入需<b>专用卡</b>／监控 <span class="num">24</span> 小时录像／寮监室监视器确认</dd></div>
+      <div class="row"><dt>寮费 <i class="chip ask">要確認</i></dt><dd style="color:var(--amber)"><b>学校未公开。必须电话询问。</b><br><span style="color:var(--muted)">行情月额 6–10 万日元（含伙食）＝ 年 72–120 万日元。这是整个预算的大头。</span></dd></div>
+      <div class="row"><dt>入寮条件 <i class="chip key">最重要</i></dt><dd style="color:var(--alert)"><b>非运动部的女生能否入住？</b><br><span style="color:var(--muted)">官网写"为努力参加社团活动的学生提供生活支持"，且女子足球部很强。若答案是"运动部优先"，整条路线需重新考虑。</span></dd></div>
+    </dl>
+
+    <p class="lede" style="margin-top:22px">参考：男子的「学校寮」为地上 4 层地下 1 层、<span class="num">142</span> 名、2 人 1 室 × <span class="num">71</span> 室、<b>各层有寮监常驻</b>。男生 223 人中约 64% 可住寮。</p>
+  </section>
+
+  <!-- 3 -->
+  <section>
+    <h2><span class="num">03</span>费用与补助</h2>
+    <p class="lede">2027年度（＝她入学那年）的学费官网已公布。<strong class="hi">授业料基本可被补助全额覆盖</strong>，真正要算的是寮费。</p>
+
+    <h3>学费（2027年度・確認済）</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>入学时一次性</th><th class="n">金额</th></tr></thead>
+        <tbody>
+          <tr><td>入学金</td><td class="n">120,000 円</td></tr>
+          <tr><td>施設設備費</td><td class="n">100,000 円</td></tr>
+          <tr><td>後援会・校友会 入会金</td><td class="n">20,000 円</td></tr>
+          <tr class="total"><td>合计</td><td class="n">240,000 円</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>每月</th><th class="n">金额</th><th class="n">年额</th></tr></thead>
+        <tbody>
+          <tr><td>授業料</td><td class="n">38,000 円</td><td class="n">456,000 円</td></tr>
+          <tr><td>教育充実費</td><td class="n">5,000 円</td><td class="n">60,000 円</td></tr>
+          <tr><td>後援会・校友会費</td><td class="n">7,000 円</td><td class="n">84,000 円</td></tr>
+          <tr class="total"><td>合计</td><td class="n">50,000 円</td><td class="n">600,000 円</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <p><b>东京都的补助跟着户口走，不跟着学校走</b></p>
+      <p>国家就学支援金 ＋ 東京都私立高等学校等授業料軽減助成金 ＝ 最高 <b class="yen">年 501,000 円</b>。授業料年额 456,000 円 → <b>基本可全额覆盖</b>。</p>
+      <p>都的制度明确：<b>都外的学校也是对象</b>；<b>因升学而从都内搬到都外的情况也属于对象</b>；<b>没有所得限制</b>。申请在入学后的 7 月。</p>
+      <p style="color:var(--amber)"><b>前提：父母的住民票必须一直留在足立区。</b>孩子入寮没问题，但父母不能搬出东京。住民票的处理方式建议入学前向東京都私学財団确认一次。<i class="chip ask">要確認</i></p>
+    </div>
+
+    <div class="note warn">
+      <p><b>学業特待奨学生制度</b>（進学コース対象・確認済）—— 这条直接决定报考策略</p>
+      <p><b>仅从「第 1 回入学试验的学校推薦型・単願」考生中选拔。</b>走一般入试或并愿就没有资格。</p>
+      <p><b>Ⅰ種</b>：入学金＋施設設備費 全额免除、教育充実費 每月全额免除　／　<b>Ⅱ種</b>：入学金 全额免除</p>
+      <p style="color:var(--muted)">另有 スポーツ特待／弟妹・同窓生子弟 入学金減免（各 60,000 円）／理事長賞（难关大学现役合格 100 万円）。</p>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section>
+    <h2><span class="num">04</span>从绫濑站怎么去</h2>
+    <p class="lede">两条路线：あずさ快 25 分钟，高速巴士便宜 2,400 円。每月往返的话，巴士的差额一年就是 5 万円以上。</p>
+
+    <div class="routes">
+      <article class="route">
+        <header>
+          <h3>ルート A ｜ 電車</h3>
+          <span class="verdict">最快・学校官方推荐</span>
+        </header>
+        <ol class="rail">
+          <li>
+            <span class="stop">綾瀬</span>
+            <span class="leg">東京メトロ千代田線 → 西日暮里で JR 山手線に乗換<br><span class="tabular">36–37 分</span>／<span class="tabular">440 円</span>（IC 431 円）</span>
+          </li>
+          <li>
+            <span class="stop">新宿</span>
+            <span class="leg">JR 特急「あずさ」<br><span class="tabular">1 時間 52 分</span>／<span class="tabular">5,430 円</span>（乗車券 3,190 ＋ 指定席 2,240）</span>
+          </li>
+          <li>
+            <span class="stop">小淵沢駅</span>
+            <span class="leg">徒歩 <span class="tabular">7–10 分</span> → 学校</span>
+          </li>
+        </ol>
+        <div class="sum"><span>约 2 时间 45 分 – 3 时间</span><b>约 5,870 円</b></div>
+        <p style="font-size:12.5px;color:var(--amber);margin:14px 0 0">⚠ 「かいじ」只到甲府。<b>必须坐「あずさ」</b>，且并非每班あずさ都停小淵沢，订票时要确认停车站。</p>
+      </article>
+
+      <article class="route">
+        <header>
+          <h3>ルート B ｜ 高速バス</h3>
+          <span class="verdict">便宜约 2,400 円・约 1 小时 1 班</span>
+        </header>
+        <ol class="rail">
+          <li>
+            <span class="stop">綾瀬</span>
+            <span class="leg">千代田線 → 西日暮里 → JR 山手線<br><span class="tabular">约 40 分</span>／<span class="tabular">440 円</span></span>
+          </li>
+          <li>
+            <span class="stop">バスタ新宿（新南口）</span>
+            <span class="leg">中央高速バス 新宿–諏訪・岡谷線<br><span class="tabular">约 2 時間 28 分</span>／<span class="tabular">3,000 円</span></span>
+          </li>
+          <li>
+            <span class="stop">中央道小淵沢</span>
+            <span class="leg">小淵沢 IC 内的巴士站。学校距 IC 开车约 <span class="tabular">3 分</span></span>
+          </li>
+        </ol>
+        <div class="sum"><span>约 3 时间 10 分</span><b>约 3,440 円</b></div>
+        <p style="font-size:12.5px;color:var(--muted);margin:14px 0 0">巴士站离学校其实很近，但要问学校能否接送、或步行需要多久。<i class="chip ask">要確認</i></p>
+      </article>
+    </div>
+
+    <p class="lede" style="margin-top:20px"><b>开车</b>：中央自動車道 小淵沢 IC 下来约 3 分钟。</p>
+  </section>
+
+  <!-- 5 -->
+  <section>
+    <h2><span class="num">05</span>7 年路线图</h2>
+    <p class="lede">选帝京路线之前必须想清楚的一件事：<strong class="hi">帝京大学的情报专业在栃木县宇都宫，不在东京。</strong>板橋和八王子校区都没有情报工学。</p>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>阶段</th><th>地点</th><th>内容</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>高中 3 年</b><br><span style="color:var(--muted);font-size:12.5px">2027.4 –</span></td>
+            <td>山梨県北杜市小淵沢<br><span style="color:var(--muted);font-size:12.5px">住岳誠寮</span></td>
+            <td>普通科 進学コース</td>
+          </tr>
+          <tr>
+            <td><b>大学 4 年</b><br><span style="color:var(--muted);font-size:12.5px">2030.4 –</span></td>
+            <td>栃木県宇都宮市豊郷台 1-1<br><span style="color:var(--muted);font-size:12.5px">需住宿舍或租房</span></td>
+            <td>帝京大学 理工学部 <b>総合理工学科</b>（定员 195）<br><strong class="hi">情報科学コース（定员 55）</strong>＝软件开发<br><span style="color:var(--muted);font-size:12.5px">其余 3 コース：機械・航空宇宙／ロボティクス・AI／環境バイオテクノロジー</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note warn">
+      <p><b>"直升"不是自动的。</b>附属推荐一般要求评定平均 3.0–3.5 以上＋出勤率，而且理工／情报系的名额通常比文科紧张。</p>
+      <p>高中三年的成绩才是能不能进「情報科学コース」的真正关口 —— 所以进了高中反而不能松。<b>推荐名额每年几人、评定平均要求多少，一定要问到具体数字。</b><i class="chip ask">要確認</i></p>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section>
+    <h2><span class="num">06</span>时间表</h2>
+    <p class="lede">最优先的不是等 10 月的说明会 —— <b>個別相談会现在就在受理</b>，可以马上预约。</p>
+
+    <ol class="tl">
+      <li class="now">
+        <span class="when">2026.09</span>
+        <span class="what"><b>预约個別相談会</b><span>同时全力提升中 3 二学期的内申点 —— 这是私立推荐的决定性材料</span></span>
+      </li>
+      <li>
+        <span class="when">2026.10.17</span>
+        <span class="what"><b>学校説明会（土）</b><span>报名受理中，截止当天 18:00。顺便实地看岳誠寮和通学路</span></span>
+      </li>
+      <li>
+        <span class="when">2026.10–11</span>
+        <span class="what"><b>個別相談会</b><span>带内申点复印件和模拟考成绩去。私立高中常在此当场给出"这个成绩推荐没问题"的口头确约</span></span>
+      </li>
+      <li>
+        <span class="when">2026.12</span>
+        <span class="what"><b>中学的三者面谈</b><span>正式决定志愿校与入试方式</span></span>
+      </li>
+      <li>
+        <span class="when">2027.01</span>
+        <span class="what"><b>第 1 回入試（学校推薦型・単願）</b><span>⭐ 学業特待奨学生只从这一回的単願者中选拔 —— 目标就是这一回</span></span>
+      </li>
+      <li>
+        <span class="when">2027.02</span>
+        <span class="what"><b>第 2 回入試</b><span>作为备选。但走这一回就没有学業特待资格</span></span>
+      </li>
+      <li>
+        <span class="when">2027.04</span>
+        <span class="what"><b>入学・入寮</b></span>
+      </li>
+      <li>
+        <span class="when">2027.07</span>
+        <span class="what"><b>申请東京都授業料軽減助成金</b><span>别忘了。年额最高 501,000 円的差别</span></span>
+      </li>
+    </ol>
+  </section>
+
+  <!-- 7 -->
+  <section>
+    <h2><span class="num">07</span>要问的 6 个问题</h2>
+    <p class="lede">电话 <b class="num">0551-36-2411</b>，或在個別相談会上当面问。日文问法附在下面，可以直接照着念。</p>
+
+    <ol class="asklist">
+      <li class="first">
+        <div>
+          <span class="q">非运动部的女生，能不能入住岳誠寮？</span>
+          <span class="jp">部活動をしていない女子生徒でも、岳誠寮に入寮できますか。</span>
+          <span class="why">官网写的是"为努力参加社团活动的学生提供生活支持"，且女子足球部很强。如果回答是"原则上运动部优先"，就要回到其他候选（拓殖大学紅陵等）。<b>先问这一个。</b></span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="q">能否接收中国籍学生入寮？保证人有什么要求？</span>
+          <span class="jp">中国籍の生徒でも入寮できますか。保証人について条件はありますか。</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="q">寮费的明细是多少？</span>
+          <span class="jp">寮費の内訳（月額・食費・年間合計）を教えてください。</span>
+          <span class="why">官网完全没有公开，而这是全部预算里最大的一块。</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="q">学業特待奨学生（Ⅰ種／Ⅱ種）的选拔基准是什么？内申点要多少？</span>
+          <span class="jp">学業特待奨学生ⅠⅡ種の選考基準、内申点の目安を教えてください。</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="q">進学コース → 帝京大学理工学部 情報科学コース 的推荐名额每年几人？评定平均要求多少？</span>
+          <span class="jp">進学コースから帝京大学理工学部・情報科学コースへの推薦枠は毎年何名ですか。評定平均の基準は。</span>
+          <span class="why">这个数字决定了"直升"是不是真的。</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="q">「オール帝京特別選抜制度」進学コース的学生也能用吗？</span>
+          <span class="jp">オール帝京特別選抜制度は、進学コースの生徒も対象になりますか。</span>
+          <span class="why">官网把这个制度和特別選抜コースの共創クラス放在一起介绍，需要确认適用范围。</span>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- 8 -->
+  <section>
+    <h2><span class="num">08</span>链接</h2>
+    <ul class="links">
+      <li><a href="https://seed.software/public/teikyo3">説明会・個別相談会 申込</a><span>個別相談会（全日制）2026.6.20 – 2027.3.31 随时受理／学校説明会 2026.10.17</span></li>
+      <li><a href="https://www.teikyo3.ed.jp/">帝京第三高等学校 官网</a></li>
+      <li><a href="https://www.teikyo3.ed.jp/facility/gakuseiryo/">岳誠寮（女子）</a></li>
+      <li><a href="https://www.teikyo3.ed.jp/examination/tuition/">学費・奨学金</a></li>
+      <li><a href="https://www.teikyo3.ed.jp/contents/wp-content/uploads/2026/06/cb864af336d6f927f15c6cafec286080.pdf">入試要項（1月）PDF</a><span>⭐ 学業特待の対象になる第 1 回はこちら</span></li>
+      <li><a href="https://www.teikyo3.ed.jp/contents/wp-content/uploads/2026/06/445e31c02173aee03822e8e2a25d098e.pdf">入試要項（2月）PDF</a></li>
+      <li><a href="https://www.teikyo.jp/utsunomiya/faculties/index.html">帝京大学 宇都宮キャンパス 学部・大学院</a><span>理工学部 総合理工学科 情報科学コース</span></li>
+      <li><a href="https://www.shigaku-tokyo.or.jp/pa_jugyoryo.html">東京都私学財団 授業料軽減助成金</a><span>都外の学校も対象・所得制限なし</span></li>
+    </ul>
+  </section>
+
+  <footer>
+    资料整理于 2026年9月。学费为学校公布的 2027年度金额，交通费为一般期普通运费，均可能变动。<br>
+    标注 <i class="chip ask">要確認</i> 的项目为官网未公开、需向学校直接确认的内容。
+  </footer>
+
+</div>
+</body>
+</html>
