@@ -203,6 +203,12 @@ const $  = s => document.querySelector(s);
 function spk(text,label,showN){ const n = st.cfg.reps||1;
   return '<button class="speak" data-say="'+esc(text)+'">◗ '+(label||"音声")+(showN&&n>1?' ×'+n:'')+'</button>'; }
 const RUBY=/([々ヶ一-鿿]+)[（(]([^）)]+)[）)]/g;
+/* 読み上げ用のテキスト。読みが割れる語だけ、注音どおりの仮名に置き換える。
+   音声エンジンが「十分」を「じゅうぶん」と読むような食い違いを防ぐ。 */
+const YOMI = new Set("一|一人|一件|一兎|一回|一日|一日中|一時|一晩|一歩|一点|一石|一箇所|一行|一言|一週間|三十分|三十分程度|三日|三日後|三日間|上手|不足|中|主|九時|二人|二人月|二度手間|二日|二泊三日|五十件|五日|人手不足|人月|今|今日中|他|何|免|入|八|出口|別々|前職|剥|割|労|勝|十五分|十人日|十分|十日|協力会社|厳密|可読性|地固|堪|報連相|声|大分|市場|年|年一回|座|弾|後|得|手|手数|抱|授|摘|放|数|敵|文字化|方|日|日中|日本|日本人|日本的|明日|時系列|最中|朝会|根付|止|正|歪|汚|洗濯物|準備不足|漏洩|煽|甘|生|異|異音|直帰|睡眠不足|空|経験不足|者|行|表|角|語|誤検知|辛|近場|通|郷|開|間|関連会社|雪道|頃|順風満帆|預".split("|"));
+const sayJP = s => String(s||"").replace(RUBY,(m,b,r)=>YOMI.has(b)?r:b);
+/* 見出し語は漢字だと読みが定まらないことがあるので、読みのほうを鳴らす */
+const sayW  = v => /[々ヶ一-鿿]/.test(v.w) ? v.r : v.w;
 function ruby(s){ if(!s) return "";
   return st.cfg.furi ? esc(s).replace(RUBY,(m,b,r)=>"<ruby>"+b+"<rt>"+r+"</rt></ruby>") : esc(strip(s)); }
 const dstrOf = i => new Date(Date.now()-i*DAY-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
@@ -337,7 +343,7 @@ function pairBox(it){
     '<span class="pair-w">'+esc(o.w)+'</span><span class="pair-r">'+esc(o.r)+'</span>' +
     '<span class="pair-c">'+esc(o.c)+'</span>' +
     '<span class="pair-b">'+(r ? "BOX "+r[0] : "未学習")+'</span>' +
-    spk(o.w,"聞く",0)+'</div>';
+    spk(sayW(o),"聞く",0)+'</div>';
 }
 /* 絞り込み後の並びでの通し番号(1 始まり)。0 なら見つからない */
 const noOf = (p,it) => p.indexOf(it) + 1;
@@ -450,7 +456,7 @@ function vCards(){
     back: (st.cfg.dir==="jp" ? '<div class="reading">'+esc(cur.r)+'</div><div class="mean zh">'+esc(cur.c)+'</div>'
                              : '<div class="reading" style="font-family:var(--jp);font-size:1.7rem;color:var(--ink)">'+esc(cur.w)+'</div><div class="reading">'+esc(cur.r)+'</div>') +
      '<div class="ex"><div class="ex-jp">'+ruby(cur.f)+'</div><div class="ex-zh">'+esc(cur.exc)+'</div>' +
-     '<div style="margin-top:12px;display:flex;gap:8px">'+spk(cur.w,"単語",1)+spk(cur.ex,"例文",1)+'</div></div>' +
+     '<div style="margin-top:12px;display:flex;gap:8px">'+spk(sayW(cur),"単語",1)+spk(sayJP(cur.f),"例文",1)+'</div></div>' +
      pairBox(cur)
   });
 }
@@ -616,7 +622,7 @@ function vlist(p){
       '<div class="row-zh">'+esc(v.c)+'</div>' +
       '<div class="row-jp" style="font-size:15.5px;margin-top:7px;color:var(--ink2)">'+ruby(v.f)+'</div>' +
       '<div class="row-meta">'+esc(v.exc)+(r?' · BOX '+r[0]+((r[2]|0)?' · 忘れ '+(r[2]|0):""):' · 未学習')+'</div></div>' +
-      '<div class="row-side">'+pill(v)+spk(v.w,"語")+spk(v.ex,"例")+
+      '<div class="row-side">'+pill(v)+spk(sayW(v),"語")+spk(sayJP(v.f),"例")+
       '<button class="chip" data-from="'+esc(v.w)+'" title="この語からカードを始める">ここから</button></div></div>';
    }).join("") || '<div class="empty">該当なし</div>');
   $("#vlist").innerHTML = html;
@@ -670,8 +676,8 @@ function vGrammar(){
             : '<div class="reading" style="font-family:var(--jp);font-size:1.6rem;color:var(--ink)">'+esc(cur.p)+'</div>') +
      '<div class="conn">接続：'+esc(cur.note)+'</div>' +
      '<div class="ex"><div class="ex-jp">'+ruby(cur.f)+'</div><div class="ex-zh">'+esc(cur.exc)+'</div>' +
-     '<div style="margin-top:12px;display:flex;gap:8px">'+spk(cur.ex,"例文",1)+
-       '<button class="speak" data-shadow="'+esc(strip(cur.ex))+'">↻ 音読</button></div></div>'
+     '<div style="margin-top:12px;display:flex;gap:8px">'+spk(sayJP(cur.f),"例文",1)+
+       '<button class="speak" data-shadow="'+esc(sayJP(cur.f))+'">↻ 音読</button></div></div>'
   });
 }
 function listGrammar(){
@@ -696,7 +702,7 @@ function glist(base){
       '<div class="row-meta">接続：'+esc(g.note)+'</div>' +
       '<div class="row-jp" style="margin-top:8px">'+ruby(g.f)+'</div>' +
       '<div class="row-zh">'+esc(g.exc)+'</div></div>' +
-      '<div class="row-side">'+pill(g)+spk(g.ex,"例文")+
+      '<div class="row-side">'+pill(g)+spk(sayJP(g.f),"例文")+
       '<button class="chip" data-fromno="G:'+g.no+'" title="この句型からカードを始める">ここから</button></div></div>';
   }).join("") || '<div class="empty">該当なし</div>');
 }
@@ -729,7 +735,7 @@ function vSpeak(){
 
   if(isList()){ listSpeak(); return; }
   if(!cardReady(p, "文")) return;
-  const plainJp = strip(cur.jp);
+  const sayJp = sayJP(cur.f);
   paintCard(p, {
     q: st.cfg.dir==="jp"
         ? '<div class="q spk-q">'+ruby(cur.f)+'</div>'
@@ -739,8 +745,8 @@ function vSpeak(){
             : '<div class="ex-jp" style="font-size:1.45rem;line-height:1.9">'+ruby(cur.f)+'</div>') +
      (cur.note?'<div class="conn">▸ '+esc(cur.note)+'</div>':"") +
      '<div class="ex" style="border-top:0;padding-top:6px"><div style="display:flex;gap:8px;flex-wrap:wrap">' +
-       spk(plainJp,"聞く",1) +
-       '<button class="speak" data-shadow="'+esc(plainJp)+'">↻ 音読 ×'+st.cfg.shadow+'</button></div></div>'
+       spk(sayJp,"聞く",1) +
+       '<button class="speak" data-shadow="'+esc(sayJp)+'">↻ 音読 ×'+st.cfg.shadow+'</button></div></div>'
   });
 }
 function listSpeak(){
@@ -768,8 +774,8 @@ function slist(sbase){
       '<div class="row-zh">'+esc(s.zh)+'</div>' +
       (s.note?'<div class="row-meta">▸ '+esc(s.note)+'</div>':"") + '</div>' +
       '<div class="row-side">' + pill(s) +
-        '<button class="speak" data-say="'+esc(strip(s.jp))+'">◗ 聞く</button>' +
-        '<button class="speak" data-shadow="'+esc(strip(s.jp))+'">↻ 音読</button>' +
+        '<button class="speak" data-say="'+esc(sayJP(s.f))+'">◗ 聞く</button>' +
+        '<button class="speak" data-shadow="'+esc(sayJP(s.f))+'">↻ 音読</button>' +
         '<button class="chip" data-fromno="S:'+s.no+'" title="この文からカードを始める">ここから</button></div></div>';
     }).join("") || '<div class="empty">該当なし</div>');
 }
@@ -873,7 +879,7 @@ function typeBox(q){
   return '<div class="typing"><div class="type-res '+(q.right?"right":"wrong")+'">' +
     (q.right ? "正解" : (q.typed ? "「"+esc(q.typed)+"」は違います" : "答え")) + '</div>' +
     '<div class="type-ans"><span class="type-w">'+esc(v.w)+'</span>' +
-    '<span class="type-r">'+esc(v.r)+'</span>'+spk(v.w,"単語",0)+'</div></div>';
+    '<span class="type-r">'+esc(v.r)+'</span>'+spk(sayW(v),"単語",0)+'</div></div>';
 }
 function typeAnswer(){
   const q = curQ(); if(!q || !q.type || q._done) return;
