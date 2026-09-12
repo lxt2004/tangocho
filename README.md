@@ -65,6 +65,20 @@ cd src/en && ./build.sh     # → /en/index.html
 - 学習記録は localStorage。オリジン単位なので保存キーを分けてある
   （`ai-no-tangocho/v1` / `eitango-note/v1`）
 
+## 版（バージョン）
+
+画面右上のバーに `v5` のような版が出る。GitHub Pages に出ている版と手元で開いた版を
+見くらべれば、新しいものを掴めているか（＝キャッシュから古い版が出ていないか）が分かる。
+
+正本は各アプリの `sw.js` のキャッシュ名（`tangocho-jp-v5` / `tangocho-en-v4`）で、
+`build.sh` がそこから読んで `const VER` として埋め込む。**公開するときは sw.js の番号を
+1つ上げてからビルドする**。番号を上げると古いキャッシュが捨てられ、開いている端末には
+「新しい版があります。」の帯が出る。
+
+```bash
+sed -i 's/tangocho-jp-v5/tangocho-jp-v6/' sw.js && (cd src/jp && ./build.sh)
+```
+
 ## 公開設定
 
 Settings → Pages → `Deploy from a branch` / `main` / `/ (root)`

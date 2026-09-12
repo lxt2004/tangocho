@@ -84,6 +84,10 @@ main{min-width:0;padding:0 0 24px}
 .bar-row{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;max-width:920px;margin:0 auto}
 h1{font-family:var(--jp);font-weight:700;font-size:1.25rem;margin:0;letter-spacing:.05em}
 .sub{font-size:0.7812rem;color:var(--ink3);font-family:var(--mono)}
+/* 画面に出す版。開いているページが新しくなったか、
+   GitHub に出ている版と同じかを、ここで見分ける */
+.ver{font-family:var(--mono);font-size:0.6875rem;color:var(--ink3);opacity:.7;
+  white-space:nowrap;user-select:all;letter-spacing:.02em}
 .wrap{max-width:920px;margin:0 auto;padding:20px 26px}
 .countdown{font-family:var(--mono);font-size:0.7188rem;color:var(--warn);
   border:1px solid var(--warn);border-radius:999px;padding:2px 10px;white-space:nowrap}
@@ -318,6 +322,7 @@ td.n{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;
         <span class="sub" id="vSub"></span>
         <span id="barQuick"></span>
         <button class="filt" id="barToggle" aria-expanded="false">絞り込み<b>▾</b></button>
+        <span class="ver" id="ver" title="このページの版。GitHub に出ている版と同じなら最新です"></span>
       </div>
       <div id="barPanel" hidden>
         <div class="bar-row" style="margin-top:9px" id="barTools"></div>
@@ -330,6 +335,7 @@ td.n{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;
   <div id="banner" hidden></div>
 </div>
 <script>
+const VER="v4";
 const VOCAB=[],GRAM=[],SPK=[];
 let _c="";
 const P0=s=>s.replace(/[（(][^）)]*[）)]/g,"");
@@ -2158,6 +2164,7 @@ document.addEventListener("keydown", e=>{
     if(e.code==="ArrowRight"||e.code==="Space"||e.code==="Enter"){ e.preventDefault(); qGo(1); return; }
     if("1234".includes(e.key)){ const b=document.querySelector('[data-o="'+(+e.key-1)+'"]'); if(b) b.click(); } }
 });
+$("#ver").textContent = VER;
 render();
 </script>
 <script>if("serviceWorker" in navigator)addEventListener("load",()=>{var had=!!navigator.serviceWorker.controller;navigator.serviceWorker.register("./sw.js").catch(function(){});navigator.serviceWorker.addEventListener("controllerchange",function(){if(had&&window.__newVer)window.__newVer()})});</script></body></html>

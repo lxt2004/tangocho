@@ -2,6 +2,11 @@
 set -e
 cd "$(dirname "$0")"
 
+# 画面に出す版。sw.js のキャッシュ名を正本にする。
+# リリースのたびに sw.js の番号を上げれば、表示とキャッシュの入れ替えがずれない。
+VER=$(sed -n 's/.*"tangocho-jp-\(v[0-9]\{1,\}\)".*/\1/p' ../../sw.js | head -1)
+VER=${VER:-dev}
+
 # 旧形式：数据 + 同序注音文件 + 级别字符串
 oldv(){ # $1=data $2=furigana $3=lvkey $4=SPEC
   echo "_L=LV.$3;_i=0;"; cat "$2"
@@ -26,6 +31,7 @@ wblk(){ local c="$1"; shift
   for f in "$@"; do [ -f "$f" ] && grep '^W.push' "$f"; done; }
 
 {
+echo "const VER=\"$VER\";"
 echo 'const VOCAB=[],GRAM=[],SPK=[];'
 echo 'let _c="",_L="",_i=0,F=[];'
 echo 'const P=s=>s.replace(/[（(][^）)]*[）)]/g,"");'
@@ -134,4 +140,5 @@ OUT=../..
   printf '%s' '<script>if("serviceWorker" in navigator)addEventListener("load",()=>{var had=!!navigator.serviceWorker.controller;navigator.serviceWorker.register("./sw.js").catch(function(){});navigator.serviceWorker.addEventListener("controllerchange",function(){if(had&&window.__newVer)window.__newVer()})});</script></body></html>'
 } > $OUT/index.html
 
+echo "version: $VER"
 echo "built: $(grep -c '^[VW]\.push' data.js) vocab / $(grep -cE '^(G|GW)\.push' data.js) grammar / $(grep -cE '^(S|SW)\.push' data.js) speak"

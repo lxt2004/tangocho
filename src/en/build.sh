@@ -1,12 +1,18 @@
 #!/bin/bash
 set -e
 cd "$(dirname "$0")"
+
+# 画面に出す版。sw.js のキャッシュ名を正本にする。
+# リリースのたびに sw.js の番号を上げれば、表示とキャッシュの入れ替えがずれない。
+VER=$(sed -n 's/.*"tangocho-en-\(v[0-9]\{1,\}\)".*/\1/p' ../../en/sw.js | head -1)
+VER=${VER:-dev}
 blk(){ local c="$1"; shift
   local any=0; for f in "$@"; do [ -f "$f" ] && any=1; done
   [ $any -eq 1 ] || return 0
   echo "_c=\"$c\";"
   for f in "$@"; do [ -f "$f" ] && grep "^[EPS]\.push" "$f" || true; done; }
 {
+echo "const VER=\"$VER\";"
 echo 'const VOCAB=[],GRAM=[],SPK=[];'
 echo 'let _c="";'
 echo 'const P0=s=>s.replace(/[（(][^）)]*[）)]/g,"");'
@@ -43,4 +49,5 @@ if [ -d "$DIST" ]; then
 echo "dist: $DIST/index.html"
 fi
 
+echo "version: $VER"
 echo "built: $(grep -c '^E\.push' data.js) words / $(grep -c '^P\.push' data.js) phrases / $(grep -c '^S\.push' data.js) sentences"

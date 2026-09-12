@@ -1,4 +1,4 @@
-const CACHE = "tangocho-jp-v4";   // en 版と同じ名前にすると、片方の activate がもう片方のキャッシュを消す
+const CACHE = "tangocho-jp-v5";   // en 版と同じ名前にすると、片方の activate がもう片方のキャッシュを消す
 const ROOT  = new URL("./", self.registration.scope).pathname;
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest",
                 "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
