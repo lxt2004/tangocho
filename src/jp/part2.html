@@ -48,19 +48,25 @@ const defState = {
   miss:null,     /* {d:"YYYY-MM-DD", keys:[...]} 今日まちがえた項目 */
   sessions:{},   /* 種類(V/G/S)ごとの「前回の続き」 */
   kv:0,          /* 記録キーの版。移行判定に使う */
+  /* ---- 端末間の同期用 ---- */
+  t:{},          /* srs のキー -> 最後に書き換えた時刻(ms)。消したときも残す */
+  cnt:{},        /* 端末ID -> {log,done,qlog,quiz,at}。上の log/done/qlog/quiz はこの合計 */
+  at:0,          /* 最後に保存した時刻。設定・しおりはこれが新しいほうを採る */
+  resetAt:0,     /* 「記録を消す」「読み込む」をした時刻。これより古い記録は捨てる */
   cfg:{ rate:.9, goal:30, dir:"jp", decks:[], view:"cards", shadow:2, reps:5,
         list:false, glist:false, slist:false,   /* 一覧表示かどうか（種類ごと） */
         gc:"", sc:"",                           /* 文法・会話の分類の絞り込み（"" = すべて） */
         furi:true, lvs:[3,2,1], bar:false, autoNext:false, hard:false, qmode:"mix",
         exam:"2026-12-06" }
 };
-let st = defState;
+let st = JSON.parse(JSON.stringify(defState));   // そのまま使うと defState 自体が書き換わる
 try{ const r = localStorage.getItem(LS); if(r) st = deepMerge(defState, JSON.parse(r)); }catch(e){}
 function deepMerge(a,b){ const o = Array.isArray(a)?b:Object.assign({},a);
   if(!Array.isArray(a)) for(const k in b){ o[k] = (b[k] && typeof b[k]==="object" && !Array.isArray(b[k])) ? deepMerge(a[k]||{}, b[k]) : b[k]; }
   return o; }
 let saveT=null, saveFail=false;
 function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{
+  st.at = Date.now(); syncSoon();
   try{ localStorage.setItem(LS, JSON.stringify(st)); saveFail=false; }
   catch(e){                      /* 容量超過などで書けないことを黙って捨てない */
     if(!saveFail){ saveFail=true;
@@ -83,6 +89,7 @@ if(!Object.keys(st.clear).length && Object.keys(st.log).length){
   for(const d in st.done){ if(st.done[d] >= st.cfg.goal) st.clear[d] = true; }  // 過去の達成を遡って認定
   save();
 }
+syncMigrate();
 st.cfg.decks = st.cfg.decks.filter(c=>VCATS.includes(c));
 if(!st.cfg.decks.length) st.cfg.decks = [...VCATS];
 
@@ -106,14 +113,17 @@ const isNew = it => !rec(it);
    8日後・16日後・40日後にまた同じ日へ揃って戻ってきて、波が周期的に再来する。 */
 const FUZZ = d => d <= 1 ? d : Math.max(1, Math.round(d * (.85 + Math.random()*.3)));
 function bump(name, d, n){ const o = st[name] || (st[name] = {});
-  o[d] = (o[d]||0) + n; if(o[d] <= 0) delete o[d]; }
+  o[d] = (o[d]||0) + n; if(o[d] <= 0) delete o[d];
+  const c = myCnt(), m = c[name] || (c[name] = {});
+  m[d] = (m[d]||0) + n; if(m[d] <= 0) delete m[d];
+  c.at = Date.now(); }
 function grade(it, g){
   const k = key(it); const r = st.srs[k] || [0,0,0];
   let b = r[0], lapse = r[2]|0;
   if(g===3) b = Math.min(BOXES.length-1, b+1);
   else if(g===2) b = Math.max(1, b);
   else { b = 0; lapse++; }
-  st.srs[k] = [b, today() + (g===1 ? 0 : g===2 ? 1 : FUZZ(BOXES[b])), lapse];
+  setRec(k, [b, today() + (g===1 ? 0 : g===2 ? 1 : FUZZ(BOXES[b])), lapse]);
   const d = dstr();
   bump("log", d, 1);                     // めくった枚数
   if(g >= 2) bump("done", d, 1);         // 進んだ枚数。ノルマはこちらで数える
@@ -126,12 +136,13 @@ function grade(it, g){
    答えられなかったときだけ 1 段だけ下げる（0 に戻すと積み上げが飛ぶ）。 */
 function quizMark(it, ok){
   const k = key(it), r = st.srs[k];
-  if(ok){ if(!r) st.srs[k] = [1, today()+1, 0]; }        // 未学習なら足がかりだけ作る
+  if(ok){ if(!r) setRec(k, [1, today()+1, 0]); }        // 未学習なら足がかりだけ作る
   else {
-    st.srs[k] = r ? [Math.max(0, r[0]-1), today(), (r[2]|0)+1] : [0, today(), 1];
+    setRec(k, r ? [Math.max(0, r[0]-1), today(), (r[2]|0)+1] : [0, today(), 1]);
     missAdd(k);
   }
-  st.quiz.n++; if(ok) st.quiz.ok++;
+  const mq = myCnt().quiz || (myCnt().quiz = {n:0,ok:0});
+  st.quiz.n++; mq.n++; if(ok){ st.quiz.ok++; mq.ok++; }
   bump("qlog", dstr(), 1);
   save();
 }
@@ -571,7 +582,7 @@ function doGrade(g){
   const k = key(cur);
   let m = marks.get(cur);
   if(m){                              // このセッションで採点済み → 前回分を取り消す
-    if(m.rec) st.srs[k] = m.rec.slice(); else delete st.srs[k];
+    setRec(k, m.rec ? m.rec.slice() : null);
     bump("log", m.day, -1);
     if(m.g >= 2) bump("done", m.day, -1);
     if(m.g===1){ const j = deck.indexOf(cur, idx+1); if(j>=0) deck.splice(j,1); }
@@ -991,16 +1002,20 @@ function vStats(){
    '<span class="note">1日の目標</span><div class="seg">'+[20,30,50,100].map(g=>'<button data-goal="'+g+'" aria-pressed="'+(st.cfg.goal===g)+'">'+g+'</button>').join("")+'</div>' +
    '<span class="note" style="margin-left:14px">ふりがな</span><div class="seg"><button data-furitoggle="1" aria-pressed="'+st.cfg.furi+'">'+(st.cfg.furi?"表示中":"非表示")+'</button></div>' +
    '</div>' +
+   syncBox() +
    '<div class="group-head">記録の持ち出し</div>' +
    '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px">' +
    '<button class="chip" id="expBtn">ファイルに書き出す</button>' +
    '<label class="chip" for="impFile" style="cursor:pointer">ファイルから読み込む</label>' +
    '<input type="file" id="impFile" accept="application/json,.json" style="display:none">' +
    '<button class="chip danger" id="reset" style="margin-left:auto">学習記録を消す</button></div>' +
-   '<div class="note" style="margin-top:24px">記録はこの端末のブラウザ内だけに保存されます。iPhone と PC の進捗は別々です。' +
+   '<div class="note" style="margin-top:24px">' + (sbUser
+     ? '記録はこの端末のブラウザと同期先の両方に保存されます。同じメールでログインした端末どうしで進捗を共有します。'
+     : '記録はこの端末のブラウザ内だけに保存されます。' + (SB_URL ? '上の「端末間の同期」でログインすると、iPhone と PC で進捗を共有できます。' : 'iPhone と PC の進捗は別々です。')) +
    '機種を変えるとき、しばらく開かずに記録が消えたときのために、ときどき書き出しておいてください。' +
    ('speechSynthesis' in window ? (jvoice? '音声：'+esc(jvoice.name) : '日本語音声が見つかりません。iOS は「設定 › アクセシビリティ › 読み上げコンテンツ › 声 › 日本語」から追加できます。') : '') + '</div>';
   document.querySelectorAll("[data-goal]").forEach(b=>b.onclick=()=>{ st.cfg.goal=+b.dataset.goal; save(); vStats(); });
+  bindSync();
   $("#expBtn").onclick = exportData;
   $("#impFile").onchange = e=>{ const f=e.target.files&&e.target.files[0]; if(f) importData(f); };
   $("#reset").onclick = ()=>{ if(confirm("すべての学習記録を消します。バッジ・達成日・しおりも消えます。よろしいですか？")){
@@ -1008,6 +1023,7 @@ function vStats(){
        消した直後に前回の山札が復元される、といった食い違いが出る。 */
     st.srs={}; st.log={}; st.done={}; st.qlog={}; st.clear={}; st.badges={};
     st.quiz={n:0,ok:0}; st.best=0; st.session=null; st.miss=null; st.mark={};
+    st.t={}; st.cnt={}; myCnt(); st.resetAt=Date.now();   // 同期先の古い記録も捨てさせる
     save();
     deck=[]; idx=0; cur=null; marks=new Map(); qs=[]; qi=0; quizN=0; quizOK=0; justCleared=null;
     vStats(); } };
@@ -1037,6 +1053,7 @@ function importData(file){
     if(!confirm("いまの記録を、読み込んだファイル（"+n+" 項目）で置き換えます。よろしいですか？")) return;
     try{
       st = deepMerge(defState, o);
+      st.resetAt = Date.now();          // 置き換えなので、同期先の記録とは混ぜない
       localStorage.setItem(LS, JSON.stringify(st));
       location.reload();
     }catch(e){ banner("保存できませんでした。", true); }
@@ -1044,6 +1061,8 @@ function importData(file){
   rd.onerror = ()=>banner("ファイルを読めませんでした。", true);
   rd.readAsText(file);
 }
+
+/*__SYNC__*/
 
 /* ============ events ============ */
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>setView(t.dataset.view));
@@ -1137,4 +1156,5 @@ document.addEventListener("keydown", e=>{
 });
 $("#ver").textContent = VER;
 render();
+sbInit();
 </script>

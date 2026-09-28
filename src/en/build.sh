@@ -34,7 +34,7 @@ echo '_c="自己紹介・スピーチ";'; sed -n '33,45p' s01.js
 echo '_c="英作文で使える型";'; sed -n '46,58p' s01.js
 echo '_c="長文の頻出構文";'; sed -n '59,100p' s01.js
 } > data.js
-awk '/__DATA__/{ while((getline l < "data.js")>0) print l; next } {print}' part2.html > body.html
+awk '/__DATA__/{ while((getline l < "data.js")>0) print l; next } /__SYNC__/{ while((getline l < "../sync.js")>0) print l; next } {print}' part2.html > body.html
 cat part1.html body.html > app.html
 { printf '%s' '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="英単語ノート"><meta name="theme-color" content="#0F7A6B">'
   cat part1.html; printf '%s' '</head><body>'; cat body.html; printf '%s' '</body></html>'

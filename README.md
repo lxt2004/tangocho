@@ -65,6 +65,42 @@ cd src/en && ./build.sh     # → /en/index.html
 - 学習記録は localStorage。オリジン単位なので保存キーを分けてある
   （`ai-no-tangocho/v1` / `eitango-note/v1`）
 
+## 端末間の同期
+
+学習記録を Supabase に置いて、iPhone と PC で共有できる。同期の処理は `src/sync.js` に
+まとめてあり、両方の `build.sh` が `part2.html` の `/*__SYNC__*/` の位置に差し込む。
+`src/sync.js` の `SB_URL` / `SB_KEY` が空のあいだは何もしない（いままでどおり端末内だけ）。
+2つのアプリは同じテーブルを使い、`app` 列（＝保存キー `LS`）で行を分ける。
+
+1. Supabase でプロジェクトを作り、SQL Editor で次を実行する
+
+   ```sql
+   create table progress (
+     user_id uuid not null references auth.users on delete cascade,
+     app text not null,
+     data jsonb not null,
+     updated_at timestamptz default now(),
+     primary key (user_id, app)
+   );
+   alter table progress enable row level security;
+   create policy "own progress" on progress
+     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+   ```
+
+2. Authentication → Sign In / Providers で **Confirm email を切る**（`mailer_autoconfirm`）。
+   ログインはメールとパスワードで、メールは送らない。無料枠では文面を変えられず確認コードを
+   載せられないうえ、リンクで入る方式だと、ホーム画面に置いた PWA ではなく Safari の側が
+   ログインしてしまうため
+3. Project Settings → API Keys の **publishable** キーと Project URL を `src/sync.js` の
+   `SB_URL` / `SB_KEY` に入れる。公開してよい鍵で、他人の行は RLS で読めない（anon には権限も与えていない）
+4. sw.js の番号を上げてビルドし、push する
+
+いま使っているプロジェクトは `ildwcfbsuuiuhnkdknys`（東京）。
+
+混ぜ方：単語ごとの記録は書き換えた時刻（`st.t`）が新しいほう、枚数は端末ごと（`st.cnt`）に
+持って足し合わせる、達成日・バッジは和集合、設定・しおりは最後に保存したほう。
+「学習記録を消す」「ファイルから読み込む」をすると `st.resetAt` が進み、ほかの端末もそれに揃う。
+
 ## 版（バージョン）
 
 画面右上のバーに `v5` のような版が出る。GitHub Pages に出ている版と手元で開いた版を
