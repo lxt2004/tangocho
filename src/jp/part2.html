@@ -5,6 +5,7 @@
     <button class="tab" role="tab" aria-controls="view" data-view="grammar">文法<small>N2</small></button>
     <button class="tab" role="tab" aria-controls="view" data-view="speak">会話<small>音読</small></button>
     <button class="tab" role="tab" aria-controls="view" data-view="quiz">小試験<small>4択</small></button>
+    <button class="tab" role="tab" aria-controls="view" data-view="text">対訳<small>01–113</small></button>
     <button class="tab" role="tab" aria-controls="view" data-view="stats">記録<small>LOG</small></button>
     <div class="spacer"></div>
     <button class="icon-btn" id="themeBtn" title="配色を切り替える" aria-label="配色を切り替える">◐</button>
@@ -297,7 +298,7 @@ function render(){
   if(curMode !== t){        // 種類が変わった → 山札を捨てる（位置は保存済み）
     curMode = t; deck=[]; idx=0; cur=null; shown=false; marks=new Map(); }
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected", t.dataset.view===st.cfg.view));
-  ({cards:vCards, grammar:vGrammar, speak:vSpeak, quiz:vQuiz, stats:vStats})[st.cfg.view]();
+  ({cards:vCards, grammar:vGrammar, speak:vSpeak, quiz:vQuiz, text:vText, stats:vStats})[st.cfg.view]();
 }
 function head(title, sub, tools, tools2, quick){
   $("#vTitle").textContent=title; $("#vSub").innerHTML=sub||"";
@@ -1064,6 +1065,79 @@ function importData(file){
 
 /*__SYNC__*/
 
+/* ---- 対訳（Markdown を読み込んで表示） ---- */
+const MD_SRC = "texts/01-113.md";
+let MD = null, mdErr = "";
+// HTML はエスケープし、<ruby>/<rt> だけ戻す（<br> は行単位で組むので捨てる）
+const mdInline = s => esc(s.replace(/<br\s*\/?>/gi,"").trim())
+  .replace(/&lt;(\/?)(ruby|rt|rp)&gt;/g,"<$1$2>")
+  .replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>");
+const mdPlain = s => s.replace(/<rt>[^<]*<\/rt>/g,"").replace(/<[^>]+>/g,"").trim();
+function parseMd(src){
+  const doc = {title:"", secs:[]}; let sec=null, para=null;
+  const flush = ()=>{ if(para && para.length && sec) sec.paras.push(para); para=null; };
+  for(const raw of src.replace(/\r/g,"").split("\n")){
+    const line = raw.trimEnd();
+    let m;
+    if(m=line.match(/^#\s+(.*)/)){ flush(); doc.title=m[1]; continue; }
+    if(m=line.match(/^#{2,3}\s+(.*)/)){ flush(); sec={name:m[1], paras:[]}; doc.secs.push(sec); continue; }
+    if(!line.trim()){ flush(); continue; }
+    if(!sec){ sec={name:"", paras:[]}; doc.secs.push(sec); }
+    para = para || [];
+    m = line.match(/^(JP|CN)[:：]\s*(.*)/);
+    const t = m ? (m[1]==="JP"?"jp":"zh") : "zh", body = m ? m[2] : line;
+    para.push({t, html:mdInline(body), plain:mdPlain(body)});
+  }
+  flush(); return doc;
+}
+function loadMd(){
+  fetch(MD_SRC).then(r=>{ if(!r.ok) throw new Error(r.status); return r.text(); })
+    .then(t=>{ MD=parseMd(t); if(st.cfg.view==="text") vText(); })
+    .catch(e=>{ mdErr=String(e.message||e); if(st.cfg.view==="text") vText(); });
+}
+function mdLine(l, q){
+  let h = l.html;
+  if(q && l.plain.includes(q) && !/<ruby>/.test(h)) h = h.split(esc(q)).join("<mark>"+esc(q)+"</mark>");
+  return '<div class="md-line '+l.t+'"><div class="txt">'+h+'</div>' +
+    (l.t==="jp" ? '<button class="speak" data-say="'+esc(l.plain)+'">◗</button>' : "") + '</div>';
+}
+function vText(){
+  if(!MD){
+    head("対訳", mdErr ? "読み込みに失敗しました" : "読み込み中…");
+    $("#view").innerHTML = '<div class="empty">'+(mdErr ? '<div class="big">'+esc(MD_SRC)+' を読み込めません。</div><div class="note">'+esc(mdErr)+'</div>' : '読み込み中…')+'</div>';
+    if(!mdErr) loadMd(); return;
+  }
+  const secs = MD.secs, q = (st._tq||"").trim();
+  let i = Math.min(Math.max(0, st.cfg.mdSec|0), secs.length-1);
+  const nLines = secs.reduce((a,s)=>a+s.paras.reduce((b,p)=>b+p.filter(l=>l.t==="jp").length,0),0);
+  head("対訳", secs.length+" 課 · 日本語 "+nLines+" 行",
+    '<div class="md-grid">'+secs.map((s,k)=>'<button class="chip" data-mdsec="'+k+'" aria-pressed="'+(!q&&k===i)+'">'+esc(s.name||k+1)+'</button>').join("")+'</div>',
+    lvChips().replace(/<button class="chip" data-lv[^]*?<\/button>/g,""));
+  const nav = '<div class="md-nav">' +
+    '<button class="chip" data-mdgo="-1"'+(i<=0?" disabled":"")+'>← 前へ</button>' +
+    '<select id="mdSel" aria-label="課を選ぶ">'+secs.map((s,k)=>'<option value="'+k+'"'+(k===i?" selected":"")+'>'+esc(s.name||String(k+1))+'</option>').join("")+'</select>' +
+    '<button class="chip" data-mdgo="1"'+(i>=secs.length-1?" disabled":"")+'>次へ →</button></div>';
+  let body;
+  if(q){
+    const hits=[];
+    secs.forEach((s,k)=>s.paras.forEach(p=>{ if(p.some(l=>l.plain.includes(q))) hits.push([k,p]); }));
+    body = '<div class="group-head">検索「'+esc(q)+'」<span>'+hits.length+' 件</span></div>' +
+      (hits.slice(0,300).map(([k,p])=>'<div class="md-para md-hit"><div class="row-meta" style="margin-bottom:4px"><button class="chip" data-mdsec="'+k+'">'+esc(secs[k].name)+'</button></div>'+p.map(l=>mdLine(l,q)).join("")+'</div>').join("")
+       || '<div class="empty">該当なし</div>');
+  } else {
+    const s = secs[i];
+    body = nav + '<div class="group-head">'+esc(s.name)+'<span>'+s.paras.length+' 段落</span></div>' +
+      s.paras.map(p=>'<div class="md-para">'+p.map(l=>mdLine(l)).join("")+'</div>').join("") +
+      nav.replace('id="mdSel"','id="mdSel2"');
+  }
+  $("#view").innerHTML = (MD.title?'<div class="md-h1">'+esc(MD.title)+'</div>':"") +
+    '<input class="field" id="tq" placeholder="全課から検索（日本語・中文）" value="'+esc(q)+'" style="margin-bottom:16px">' + body;
+  ["#mdSel","#mdSel2"].forEach(id=>{ const s=$(id); if(s) s.onchange=()=>mdOpen(+s.value); });
+  const inp=$("#tq"); inp.oninput=()=>{ st._tq=inp.value; const c=inp.selectionStart;
+    vText(); const n=$("#tq"); n.focus(); n.setSelectionRange(c,c); };
+}
+function mdOpen(k){ st.cfg.mdSec=k; st._tq=""; save(); vText(); scrollTo(0,0); const w=$("main"); if(w) w.scrollTop=0; }
+
 /* ============ events ============ */
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>setView(t.dataset.view));
 $("#barToggle").onclick = ()=>{ st.cfg.bar = !st.cfg.bar; save(); render(); };
@@ -1112,6 +1186,8 @@ document.addEventListener("click", e=>{
     const v = prompt("試験日を YYYY-MM-DD で入力してください", st.cfg.exam);
     if(v && /^\d{4}-\d{2}-\d{2}$/.test(v)){ st.cfg.exam=v; save(); render(); }
     return; }
+  const mdS=e.target.closest("[data-mdsec]"); if(mdS){ mdOpen(+mdS.dataset.mdsec); return; }
+  const mdG=e.target.closest("[data-mdgo]"); if(mdG){ mdOpen((st.cfg.mdSec|0)+(+mdG.dataset.mdgo)); return; }
   const c2=e.target.closest("[data-cat]");
   if(c2){ const i=c2.dataset.cat.indexOf(":"), t=c2.dataset.cat.slice(0,i), c=c2.dataset.cat.slice(i+1);
     if(t==="G"){ st.cfg.gc = (st.cfg.gc===c ? "" : c); st._gq=""; }
@@ -1149,6 +1225,9 @@ document.addEventListener("keydown", e=>{
     if(e.code==="ArrowRight"){ e.preventDefault(); go(1); return; }
   }
   if(e.key==="f"||e.key==="F"){ st.cfg.bar=!st.cfg.bar; save(); render(); return; }
+  if(st.cfg.view==="text" && !st._tq && MD){
+    if(e.code==="ArrowLeft" && (st.cfg.mdSec|0)>0){ e.preventDefault(); mdOpen((st.cfg.mdSec|0)-1); return; }
+    if(e.code==="ArrowRight" && (st.cfg.mdSec|0)<MD.secs.length-1){ e.preventDefault(); mdOpen((st.cfg.mdSec|0)+1); return; } }
   if(st.cfg.view==="quiz"){
     if(e.code==="ArrowLeft"){ e.preventDefault(); qGo(-1); return; }
     if(e.code==="ArrowRight"||e.code==="Space"||e.code==="Enter"){ e.preventDefault(); qGo(1); return; }

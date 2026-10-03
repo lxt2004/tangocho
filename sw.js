@@ -1,4 +1,4 @@
-const CACHE = "tangocho-jp-v6";   // en 版と同じ名前にすると、片方の activate がもう片方のキャッシュを消す
+const CACHE = "tangocho-jp-v7";   // en 版と同じ名前にすると、片方の activate がもう片方のキャッシュを消す
 const ROOT  = new URL("./", self.registration.scope).pathname;
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest",
                 "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
@@ -28,6 +28,13 @@ self.addEventListener("fetch", e => {
     e.respondWith(fetch(e.request)
       .then(res => { const c = res.clone(); caches.open(CACHE).then(x => x.put(e.request, c)); return res; })
       .catch(() => caches.match(e.request).then(r => r || caches.match(ROOT))));
+    return;
+  }
+  // 対訳テキスト（.md）は network-first：差し替えをすぐ反映し、圏外ならキャッシュ
+  if (url.origin === location.origin && url.pathname.endsWith(".md")) {
+    e.respondWith(fetch(e.request)
+      .then(res => { const c = res.clone(); caches.open(CACHE).then(x => x.put(e.request, c)); return res; })
+      .catch(() => caches.match(e.request)));
     return;
   }
   if (url.origin === location.origin || isFont) {

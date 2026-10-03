@@ -298,6 +298,24 @@ td.n{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;
 ruby{ruby-position:over;-webkit-ruby-position:before}
 rt{font-family:var(--jp);font-size:.6em;font-weight:400;color:var(--ink3);
   letter-spacing:0;line-height:1.1;text-align:center}
+/* ---------- 対訳（md） ---------- */
+.md-para{border:1px solid var(--rule);border-radius:12px;padding:14px 18px;margin:0 0 12px;background:var(--surface)}
+.md-line{display:flex;gap:12px;align-items:flex-start;padding:4px 0}
+.md-line + .md-line.jp{border-top:1px dashed var(--rule);margin-top:6px;padding-top:10px}
+.md-line .txt{flex:1;min-width:0}
+.md-line.jp .txt{font-family:var(--jp);font-size:1.125rem;line-height:1.9;color:var(--ink)}
+.md-line.zh .txt{font-size:0.9375rem;color:var(--ink2);line-height:1.7}
+.md-line .speak{flex:none}
+.md-h1{font-size:0.9375rem;color:var(--ink2);margin:0 0 16px}
+.md-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 16px}
+.md-nav select{font:inherit;padding:6px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--surface);color:var(--ink)}
+.md-grid{display:flex;flex-wrap:wrap;gap:4px}
+.md-grid .chip{min-width:42px;justify-content:center;font-family:var(--mono);font-size:0.75rem}
+.md-hit mark{background:var(--accent);color:var(--surface);border-radius:2px;padding:0 1px}
+.md-nav .chip:disabled{opacity:.4;cursor:default}
+[data-furi="off"] .md-line rt{display:none}
+[data-furi="on"] .md-line.jp .txt{line-height:2.35}
+
 [data-furi="on"] .ex-jp,[data-furi="on"] .row-jp{line-height:2.35}
 [data-furi="on"] .q{line-height:1.9}
 [data-furi="on"] .opt .jp{line-height:2.2}
