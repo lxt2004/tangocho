@@ -210,6 +210,15 @@ kbd{display:inline-block;font-family:var(--mono);font-size:0.625rem;line-height:
 .group-head:first-child{margin-top:8px}
 .group-head span{font-family:var(--mono);font-size:0.6562rem;color:var(--ink3);letter-spacing:.06em;float:right;font-weight:400}
 
+/* ---------- ファイル置き場 ---------- */
+.fdrop{border:1.5px dashed var(--rule);border-radius:12px;padding:22px 16px;text-align:center;
+  color:var(--ink2);background:var(--surface);transition:.15s;margin-top:14px}
+.fdrop.over{border-color:var(--accent);background:var(--surface2);color:var(--ink)}
+.frow{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--rule2)}
+.frow .fname{flex:1;min-width:0;overflow-wrap:anywhere}
+.frow .fmeta{font-family:var(--mono);font-size:0.6875rem;color:var(--ink3);white-space:nowrap}
+@media (max-width:720px){ .frow{flex-wrap:wrap} .frow .fname{flex-basis:100%} }
+
 /* ---------- quiz ---------- */
 .opts{display:flex;flex-direction:column;gap:9px;margin-top:22px}
 .opt{text-align:left;padding:14px 16px;border:1px solid var(--rule);border-radius:11px;
@@ -337,7 +346,8 @@ rt{font-family:var(--jp);font-size:.6em;font-weight:400;color:var(--ink3);
     border-right:0;border-top:1px solid var(--rule);gap:0;justify-content:space-around;z-index:20;
     padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
   .brand{display:none} #rail .spacer{display:none}
-  .tab{writing-mode:horizontal-tb;letter-spacing:.02em;font-size:0.8125rem;padding:7px 10px;flex:1;text-align:center}
+  /* タブが 7 つあるので、折り返さないよう左右の余白を詰める */
+  .tab{writing-mode:horizontal-tb;letter-spacing:0;font-size:0.8125rem;padding:7px 2px;flex:1;text-align:center;white-space:nowrap}
   .tab small{display:none}
   .icon-btn{width:34px;height:34px;font-size:0.9375rem}
   /* 文字を大きくしたぶん、スマホでは余白を詰めて 1 画面に収める。
@@ -363,6 +373,7 @@ rt{font-family:var(--jp);font-size:.6em;font-weight:400;color:var(--ink3);
     <button class="tab" role="tab" aria-controls="view" data-view="speak">会話<small>音読</small></button>
     <button class="tab" role="tab" aria-controls="view" data-view="quiz">小試験<small>4択</small></button>
     <button class="tab" role="tab" aria-controls="view" data-view="text">対訳<small>01–113</small></button>
+    <button class="tab" role="tab" aria-controls="view" data-view="files">ファイル<small>FILE</small></button>
     <button class="tab" role="tab" aria-controls="view" data-view="stats">記録<small>LOG</small></button>
     <div class="spacer"></div>
     <button class="icon-btn" id="themeBtn" title="配色を切り替える" aria-label="配色を切り替える">◐</button>
@@ -387,7 +398,7 @@ rt{font-family:var(--jp);font-size:.6em;font-weight:400;color:var(--ink3);
   <div id="banner" hidden></div>
 </div>
 <script>
-const VER="v7";
+const VER="v8";
 const VOCAB=[],GRAM=[],SPK=[];
 let _c="",_L="",_i=0,F=[];
 const P=s=>s.replace(/[（(][^）)]*[）)]/g,"");
@@ -5624,7 +5635,7 @@ function render(){
   if(curMode !== t){        // 種類が変わった → 山札を捨てる（位置は保存済み）
     curMode = t; deck=[]; idx=0; cur=null; shown=false; marks=new Map(); }
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected", t.dataset.view===st.cfg.view));
-  ({cards:vCards, grammar:vGrammar, speak:vSpeak, quiz:vQuiz, text:vText, stats:vStats})[st.cfg.view]();
+  ({cards:vCards, grammar:vGrammar, speak:vSpeak, quiz:vQuiz, text:vText, files:vFiles, stats:vStats})[st.cfg.view]();
 }
 function head(title, sub, tools, tools2, quick){
   $("#vTitle").textContent=title; $("#vSub").innerHTML=sub||"";
@@ -6250,6 +6261,111 @@ function answer(i){
   if(ok && st.cfg.autoNext) setTimeout(()=>{ if(curQ()===q && st.cfg.view==="quiz") qGo(1); }, 900);
 }
 
+/* ---- ファイル置き場 ----
+   学習とは関係のない、ただのファイル置き場。Supabase Storage の非公開バケット "files" に
+   「ユーザー ID/」の下で置くので、同じアカウントでログインした端末どうしで受け渡しできる。
+   ストレージのキーに日本語が使えないので、元のファイル名は base64url にしてキーに埋める。 */
+const FB = "files", FMAX = 50*1024*1024;            // 無料枠の上限は 1 ファイル 50 MB
+let fl = { uid:null, items:null, busy:"", err:"" };
+const b64u = s => btoa(String.fromCharCode(...new TextEncoder().encode(s)))
+  .replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const unb64u = s => { try{ const b = atob(s.replace(/-/g,"+").replace(/_/g,"/"));
+  return new TextDecoder().decode(Uint8Array.from(b, ch=>ch.charCodeAt(0))); }catch(e){ return s; } };
+const fOrig = k => { const i = k.indexOf("_"); return i<0 ? k : unb64u(k.slice(i+1)); };
+const fSize = n => n==null ? "" : n<1024 ? n+" B" : n<1048576 ? (n/1024).toFixed(1)+" KB" : (n/1048576).toFixed(1)+" MB";
+const fDate = t => { if(!t) return ""; const d = new Date(t); return (d.getMonth()+1)+"/"+d.getDate()+" "+hm(d); };
+
+async function fLoad(){
+  if(!sb || !sbUser) return;
+  const uid = sbUser.id;
+  try{
+    const { data, error } = await sb.storage.from(FB)
+      .list(uid, { limit:1000, sortBy:{ column:"created_at", order:"desc" } });
+    if(error) throw error;
+    fl.items = (data||[]).filter(o=>o.id);           // フォルダの見出し行（id なし）は除く
+    fl.err = "";
+  }catch(e){ fl.items = fl.items || []; fl.err = (e && e.message) || String(e); }
+  if(st.cfg.view === "files") redraw();
+}
+async function fUpload(files){
+  if(!sb || !sbUser || !files || !files.length) return;
+  const list = [...files], big = list.filter(f=>f.size > FMAX);
+  if(big.length) banner("50 MB を超えるファイルは置けません：" + big.map(f=>f.name).join("、"), true);
+  const ok = list.filter(f=>f.size <= FMAX);
+  let n = 0, bad = [];
+  for(const f of ok){
+    fl.busy = "アップロード中… (" + (++n) + "/" + ok.length + ") " + f.name; vFiles();
+    const path = sbUser.id + "/" + Date.now() + "_" + b64u(f.name);
+    const { error } = await sb.storage.from(FB)
+      .upload(path, f, { contentType: f.type || "application/octet-stream", upsert:false });
+    if(error) bad.push(f.name + "（" + error.message + "）");
+  }
+  fl.busy = "";
+  if(bad.length) banner("アップロードできませんでした：" + bad.join("、"), true);
+  else if(ok.length) announce(ok.length + " 件アップロードしました");
+  await fLoad(); vFiles();
+}
+async function fDownload(key){
+  const name = fOrig(key);
+  fl.busy = "ダウンロード中… " + name; vFiles();
+  const { data, error } = await sb.storage.from(FB).download(sbUser.id + "/" + key);
+  fl.busy = ""; vFiles();
+  if(error){ banner("ダウンロードできませんでした：" + error.message, true); return; }
+  const url = URL.createObjectURL(data), a = document.createElement("a");
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 60000);
+}
+async function fDelete(key){
+  if(!confirm("「" + fOrig(key) + "」を削除します。よろしいですか？")) return;
+  const { error } = await sb.storage.from(FB).remove([sbUser.id + "/" + key]);
+  if(error){ banner("削除できませんでした：" + error.message, true); return; }
+  announce("削除しました");
+  await fLoad();
+}
+
+function vFiles(){
+  head("ファイル", "端末間でファイルを受け渡す");
+  const v = $("#view");
+  if(!SB_URL){ v.innerHTML = '<div class="note">同期先が設定されていないため使えません。</div>'; return; }
+  if(!sb){ v.innerHTML = '<div class="note">' + (syncErr ? esc(syncErr) : "準備中…") + '</div>'; return; }
+  if(!sbUser){
+    v.innerHTML = '<div class="note">ファイルの置き場は「端末間の同期」と同じアカウントを使います。' +
+      '先に「記録」の画面でログインしてください。</div>' +
+      '<div style="margin-top:14px"><button class="chip" id="goSync">記録の画面へ</button></div>';
+    $("#goSync").onclick = ()=>setView("stats");
+    return;
+  }
+  if(fl.uid !== sbUser.id){ fl = { uid:sbUser.id, items:null, busy:"", err:"" }; fLoad(); }
+  const items = fl.items;
+  let h = '<div class="fdrop" id="fDrop">' +
+      '<label class="chip" for="fIn" style="cursor:pointer">ファイルを選んでアップロード</label>' +
+      '<input type="file" id="fIn" multiple style="display:none">' +
+      '<div class="note kb" style="margin-top:8px">ここにドラッグ＆ドロップしても置けます（1 ファイル 50 MB まで）</div>' +
+      '<div class="note tp" style="margin-top:8px">1 ファイル 50 MB まで</div></div>' +
+    '<div class="note" style="margin-top:10px;min-height:1.7em" role="status">' + esc(fl.busy) + '</div>' +
+    '<div class="group-head">置いてあるファイル<span>' + (items ? items.length + " 件" : "") +
+      ' <button class="chip" id="fRe" style="margin-left:8px">再読み込み</button></span></div>';
+  if(fl.err) h += '<div class="note" style="color:var(--bad)">読み込めませんでした：' + esc(fl.err) + '</div>';
+  if(!items) h += '<div class="note">読み込み中…</div>';
+  else if(!items.length) h += '<div class="note" style="margin-top:10px">まだファイルはありません。</div>';
+  else h += items.map(o =>
+    '<div class="frow"><span class="fname">' + esc(fOrig(o.name)) + '</span>' +
+    '<span class="fmeta">' + fSize(o.metadata && o.metadata.size) + '　' + fDate(o.created_at) + '</span>' +
+    '<button class="chip" data-fdl="' + esc(o.name) + '">ダウンロード</button>' +
+    '<button class="chip danger" data-fdel="' + esc(o.name) + '">削除</button></div>').join("");
+  h += '<div class="note" style="margin-top:24px">同じメールでログインした端末どうしで、ここに置いたファイルを取り出せます。' +
+    '他人からは見えません。</div>';
+  v.innerHTML = h;
+  $("#fIn").onchange = e => { fUpload(e.target.files); e.target.value = ""; };
+  $("#fRe").onclick = ()=>{ fl.items = null; vFiles(); fLoad(); };
+  v.querySelectorAll("[data-fdl]").forEach(b=>b.onclick=()=>fDownload(b.dataset.fdl));
+  v.querySelectorAll("[data-fdel]").forEach(b=>b.onclick=()=>fDelete(b.dataset.fdel));
+  const d = $("#fDrop");
+  d.ondragover = e => { e.preventDefault(); d.classList.add("over"); };
+  d.ondragleave = () => d.classList.remove("over");
+  d.ondrop = e => { e.preventDefault(); d.classList.remove("over"); fUpload(e.dataTransfer.files); };
+}
+
 /* ---- 記録 ---- */
 function vStats(){
   head("記録", "学習の積み上げ");
@@ -6520,10 +6636,10 @@ async function sbInit(){
       const u = (s && s.user) || null, was = sbUser && sbUser.id;
       sbUser = u;
       if(u && u.id !== was) setTimeout(sync, 0);   // コールバックの中で待つと固まるので外で呼ぶ
-      if(st.cfg.view === "stats") redraw();
+      if(st.cfg.view === "stats" || st.cfg.view === "files") redraw();
     });
   }catch(e){ syncErr = "同期の部品を読み込めませんでした。通信できるときに開き直してください。";
-    if(st.cfg.view === "stats") redraw(); }
+    if(st.cfg.view === "stats" || st.cfg.view === "files") redraw(); }
 }
 
 const hm = t => new Date(t).toTimeString().slice(0,5);

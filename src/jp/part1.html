@@ -210,6 +210,15 @@ kbd{display:inline-block;font-family:var(--mono);font-size:0.625rem;line-height:
 .group-head:first-child{margin-top:8px}
 .group-head span{font-family:var(--mono);font-size:0.6562rem;color:var(--ink3);letter-spacing:.06em;float:right;font-weight:400}
 
+/* ---------- ファイル置き場 ---------- */
+.fdrop{border:1.5px dashed var(--rule);border-radius:12px;padding:22px 16px;text-align:center;
+  color:var(--ink2);background:var(--surface);transition:.15s;margin-top:14px}
+.fdrop.over{border-color:var(--accent);background:var(--surface2);color:var(--ink)}
+.frow{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--rule2)}
+.frow .fname{flex:1;min-width:0;overflow-wrap:anywhere}
+.frow .fmeta{font-family:var(--mono);font-size:0.6875rem;color:var(--ink3);white-space:nowrap}
+@media (max-width:720px){ .frow{flex-wrap:wrap} .frow .fname{flex-basis:100%} }
+
 /* ---------- quiz ---------- */
 .opts{display:flex;flex-direction:column;gap:9px;margin-top:22px}
 .opt{text-align:left;padding:14px 16px;border:1px solid var(--rule);border-radius:11px;
@@ -337,7 +346,8 @@ rt{font-family:var(--jp);font-size:.6em;font-weight:400;color:var(--ink3);
     border-right:0;border-top:1px solid var(--rule);gap:0;justify-content:space-around;z-index:20;
     padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
   .brand{display:none} #rail .spacer{display:none}
-  .tab{writing-mode:horizontal-tb;letter-spacing:.02em;font-size:0.8125rem;padding:7px 10px;flex:1;text-align:center}
+  /* タブが 7 つあるので、折り返さないよう左右の余白を詰める */
+  .tab{writing-mode:horizontal-tb;letter-spacing:0;font-size:0.8125rem;padding:7px 2px;flex:1;text-align:center;white-space:nowrap}
   .tab small{display:none}
   .icon-btn{width:34px;height:34px;font-size:0.9375rem}
   /* 文字を大きくしたぶん、スマホでは余白を詰めて 1 画面に収める。

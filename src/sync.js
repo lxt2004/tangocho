@@ -129,10 +129,10 @@ async function sbInit(){
       const u = (s && s.user) || null, was = sbUser && sbUser.id;
       sbUser = u;
       if(u && u.id !== was) setTimeout(sync, 0);   // コールバックの中で待つと固まるので外で呼ぶ
-      if(st.cfg.view === "stats") redraw();
+      if(st.cfg.view === "stats" || st.cfg.view === "files") redraw();
     });
   }catch(e){ syncErr = "同期の部品を読み込めませんでした。通信できるときに開き直してください。";
-    if(st.cfg.view === "stats") redraw(); }
+    if(st.cfg.view === "stats" || st.cfg.view === "files") redraw(); }
 }
 
 const hm = t => new Date(t).toTimeString().slice(0,5);
